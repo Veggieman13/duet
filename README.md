@@ -1,56 +1,43 @@
-# Welcome to your Expo app 👋
+# Cycle Tracker
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A private period and ovulation tracker. All data stays on the device — no accounts,
+no servers, no tracking. Partner sharing is planned for v2.
 
-## Get started
+Built with Expo (React Native), targeting both the App Store and Google Play.
 
-1. Install dependencies
+## Features (v1)
 
-   ```bash
-   npm install
-   ```
+- **Today** — cycle day, current phase, next-period countdown, fertile window
+- **Calendar** — logged periods, predicted periods, fertile window, ovulation
+- **Logging** — flow level, symptoms, notes per day
+- **Tips** — wellness tips by cycle phase, with the current phase highlighted
+- **Settings** — cycle defaults, privacy info, delete-all-data
 
-2. Start the app
+Predictions start from onboarding answers and automatically switch to averages
+of logged cycles as data accumulates (`src/lib/cycle.ts`).
 
-   ```bash
-   npx expo start
-   ```
+## Run it
 
-In the output, you'll find options to open the app in a
+```sh
+npm install
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+# On your phone: install the "Expo Go" app, then
+npx expo start
+# and scan the QR code (phone and computer must be on the same Wi-Fi)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+# In a browser
+npm run web
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Project layout
 
-### Other setup steps
+- `src/app/` — screens (Expo Router file-based routing)
+- `src/lib/` — data model, cycle math, storage, tips content
+- `src/components/` — calendar grid, chips, steppers, themed primitives
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Checks
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```sh
+npx tsc --noEmit   # typecheck
+npm run lint       # lint
+```
