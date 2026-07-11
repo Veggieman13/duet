@@ -13,18 +13,34 @@ export default function AppTabs() {
       indicatorColor={colors.backgroundElement}
       labelStyle={{ selected: { color: colors.text } }}>
       <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>Today</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
+          sf={{ default: 'heart', selected: 'heart.fill' }}
+          md={{ default: 'favorite', selected: 'favorite' }}
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="explore">
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name="calendar">
+        <NativeTabs.Trigger.Label>Calendar</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
+          sf={{ default: 'calendar', selected: 'calendar' }}
+          md={{ default: 'calendar_month', selected: 'calendar_month' }}
+        />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="tips">
+        <NativeTabs.Trigger.Label>Tips</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: 'lightbulb', selected: 'lightbulb.fill' }}
+          md={{ default: 'lightbulb', selected: 'lightbulb' }}
+        />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="settings">
+        <NativeTabs.Trigger.Label>Settings</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: 'gearshape', selected: 'gearshape.fill' }}
+          md={{ default: 'settings', selected: 'settings' }}
         />
       </NativeTabs.Trigger>
     </NativeTabs>
