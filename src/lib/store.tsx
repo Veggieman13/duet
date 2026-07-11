@@ -1,5 +1,6 @@
-import Storage from 'expo-sqlite/kv-store';
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+
+import Storage from '@/lib/storage';
 
 import { CycleInfo, getCycleInfo } from '@/lib/cycle';
 import { addDays, todayKey } from '@/lib/dates';
