@@ -54,7 +54,7 @@ private period tracker
 
 ## Privacy policy URL
 
-(to be filled in once hosted — see store/privacy-policy.md)
+https://veggieman13.github.io/duet/privacy.html
 
 ## Data safety form answers (Play Console)
 
