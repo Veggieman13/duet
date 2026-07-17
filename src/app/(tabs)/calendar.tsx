@@ -12,7 +12,7 @@ import { monthTitle } from '@/lib/dates';
 import { useCycle } from '@/lib/store';
 
 export default function CalendarScreen() {
-  const { info, logs } = useCycle();
+  const { info, logs, settings } = useCycle();
   const theme = useTheme();
   const router = useRouter();
 
@@ -65,7 +65,9 @@ export default function CalendarScreen() {
             month={view.month}
             markers={info.markers}
             loggedDays={loggedDays}
-            onDayPress={(key) => router.push(`/log/${key}`)}
+            onDayPress={
+              settings.role === 'partner' ? undefined : (key) => router.push(`/log/${key}`)
+            }
           />
 
           <View style={styles.legend}>
@@ -80,7 +82,9 @@ export default function CalendarScreen() {
           </View>
 
           <ThemedText type="small" themeColor="textSecondary">
-            Tap a day to log or edit it. Predictions sharpen as you log more periods.
+            {settings.role === 'partner'
+              ? 'You are viewing your partner’s cycle. Predictions sharpen as they log.'
+              : 'Tap a day to log or edit it. Predictions sharpen as you log more periods.'}
           </ThemedText>
         </ScrollView>
       </SafeAreaView>

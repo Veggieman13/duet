@@ -16,6 +16,7 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="onboarding" options={{ presentation: 'modal', gestureEnabled: false }} />
+          <Stack.Screen name="pair" options={{ presentation: 'modal' }} />
           <Stack.Screen name="log/[date]" options={{ presentation: 'modal' }} />
         </Stack>
       </CycleProvider>

@@ -13,7 +13,7 @@ import { DISCLAIMER } from '@/lib/tips';
 import { TIP_SECTIONS } from '@/lib/tips';
 
 export default function TodayScreen() {
-  const { settings, info, logs } = useCycle();
+  const { settings, info, logs, syncStatus, refreshFromPartner } = useCycle();
   const theme = useTheme();
   const router = useRouter();
 
@@ -23,6 +23,7 @@ export default function TodayScreen() {
 
   const today = todayKey();
   const todayLog = logs[today];
+  const isPartner = settings.role === 'partner';
 
   const heroBackground =
     info.phase === 'menstrual'
@@ -52,6 +53,28 @@ export default function TodayScreen() {
             <ThemedText type="subtitle">Today</ThemedText>
             <ThemedText themeColor="textSecondary">{formatKey(today)}</ThemedText>
           </View>
+
+          {isPartner && (
+            <ThemedView type="backgroundElement" style={styles.partnerBanner}>
+              <View style={styles.partnerBannerText}>
+                <ThemedText type="smallBold">💞 Your partner’s cycle</ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {syncStatus === 'syncing'
+                    ? 'Updating…'
+                    : syncStatus === 'error'
+                      ? 'Could not update — check your connection'
+                      : settings.lastSyncAt
+                        ? `Updated ${new Date(settings.lastSyncAt).toLocaleString()}`
+                        : 'Waiting for first sync'}
+                </ThemedText>
+              </View>
+              <Pressable onPress={refreshFromPartner} hitSlop={8}>
+                <ThemedText type="smallBold" themeColor="tint">
+                  Refresh
+                </ThemedText>
+              </Pressable>
+            </ThemedView>
+          )}
 
           <View style={[styles.hero, { backgroundColor: heroBackground }]}>
             {info.cycleDay != null && (
@@ -93,17 +116,19 @@ export default function TodayScreen() {
             </ThemedView>
           </View>
 
-          <Pressable
-            onPress={() => router.push(`/log/${today}`)}
-            style={({ pressed }) => [
-              styles.logButton,
-              { backgroundColor: theme.tint },
-              pressed && styles.pressed,
-            ]}>
-            <ThemedText type="smallBold" style={{ color: theme.onAccent }}>
-              {todayLog ? 'Edit today’s log' : 'Log today'}
-            </ThemedText>
-          </Pressable>
+          {!isPartner && (
+            <Pressable
+              onPress={() => router.push(`/log/${today}`)}
+              style={({ pressed }) => [
+                styles.logButton,
+                { backgroundColor: theme.tint },
+                pressed && styles.pressed,
+              ]}>
+              <ThemedText type="smallBold" style={{ color: theme.onAccent }}>
+                {todayLog ? 'Edit today’s log' : 'Log today'}
+              </ThemedText>
+            </Pressable>
+          )}
 
           {todayLog && (
             <ThemedView type="backgroundElement" style={styles.card}>
@@ -157,6 +182,18 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.four,
     padding: Spacing.four,
     gap: Spacing.one,
+  },
+  partnerBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: Spacing.three,
+    padding: Spacing.three,
+    gap: Spacing.two,
+  },
+  partnerBannerText: {
+    gap: Spacing.half,
+    flexShrink: 1,
   },
   statRow: {
     flexDirection: 'row',

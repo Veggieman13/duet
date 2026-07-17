@@ -113,6 +113,12 @@ export default function OnboardingScreen() {
               I don’t remember — skip for now
             </ThemedText>
           </Pressable>
+
+          <Pressable onPress={() => router.push('/pair')} style={styles.skipButton}>
+            <ThemedText type="smallBold" themeColor="tint">
+              💞 My partner tracks with Duet — I have an invite code
+            </ThemedText>
+          </Pressable>
         </ScrollView>
       </SafeAreaView>
     </ThemedView>

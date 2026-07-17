@@ -9,6 +9,10 @@ const Storage = {
     if (typeof localStorage === 'undefined') return;
     localStorage.setItem(key, value);
   },
+  removeItemSync(key: string): void {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.removeItem(key);
+  },
 };
 
 export default Storage;
