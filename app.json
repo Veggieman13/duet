@@ -35,7 +35,13 @@
           "imageWidth": 160
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Duet uses the camera only to scan your partner's pairing code."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

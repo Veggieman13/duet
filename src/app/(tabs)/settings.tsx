@@ -9,6 +9,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Stepper } from '@/components/stepper';
@@ -120,8 +121,16 @@ export default function SettingsScreen() {
       return (
         <>
           <ThemedText type="small" themeColor="textSecondary">
-            Have your partner install Duet, choose “My partner tracks with Duet” on the welcome
-            screen, and enter this code:
+            Have your partner install Duet and choose “My partner tracks with Duet” on the
+            welcome screen — then they simply scan this code:
+          </ThemedText>
+          <View style={styles.qrWrap}>
+            <View style={styles.qrCard}>
+              <QRCode value={`duet://pair?code=${settings.inviteCode}`} size={180} />
+            </View>
+          </View>
+          <ThemedText type="small" themeColor="textSecondary" style={styles.codeHint}>
+            No camera handy? The code can also be typed:
           </ThemedText>
           <ThemedText style={styles.inviteCode}>{settings.inviteCode}</ThemedText>
           <Pressable
@@ -286,6 +295,18 @@ const styles = StyleSheet.create({
     letterSpacing: 8,
     textAlign: 'center',
     paddingVertical: Spacing.two,
+  },
+  qrWrap: {
+    alignItems: 'center',
+    paddingVertical: Spacing.two,
+  },
+  qrCard: {
+    backgroundColor: '#ffffff',
+    padding: Spacing.three,
+    borderRadius: Spacing.three,
+  },
+  codeHint: {
+    textAlign: 'center',
   },
   secondaryButton: {
     borderRadius: Spacing.three,
