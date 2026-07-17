@@ -1,10 +1,10 @@
 # Duet — Privacy Policy
 
-**Effective date: July 12, 2026**
+**Effective date: July 17, 2026**
 
 Duet is a period and cycle tracking app. This policy explains what happens with
 your information when you use it. The short version: **your data never leaves
-your phone.**
+your phone — unless you choose to share it with your partner.**
 
 ## What data Duet handles
 
@@ -42,11 +42,23 @@ professional.
 Duet is not directed at children under 13, and we do not knowingly collect any
 data from anyone (see above — we collect no data at all).
 
-## Future features
+## Partner sharing (optional)
 
-If a future version of Duet introduces optional features that require data to
-leave your device (such as sharing your cycle with a partner), this policy will
-be updated first, and any such feature will be strictly opt-in.
+Duet lets you optionally share your cycle with one partner. If — and only if —
+you turn this on:
+
+- Your cycle data (period dates, symptoms, notes and cycle settings) is stored
+  on Duet's sync server so your partner's phone can read it. It is encrypted in
+  transit.
+- The data is stored under a random identifier. It is not linked to your name,
+  email, phone number, or any account — Duet still has none of those.
+- Only the one partner who used your invite code can read it. Partners can
+  read, never change.
+- Either of you can stop sharing at any time, which deletes the shared data
+  from the server.
+- Nothing else changes: still no ads, no analytics, no third-party sharing.
+
+If you never turn on partner sharing, no data leaves your device at all.
 
 ## Changes to this policy
 
