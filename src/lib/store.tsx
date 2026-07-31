@@ -144,7 +144,8 @@ export function CycleProvider({ children }: { children: ReactNode }) {
       setDayLog: (date, log) => {
         setLogs((prev) => {
           const next = { ...prev };
-          const isEmpty = !log || (!log.flow && log.symptoms.length === 0 && !log.note);
+          const isEmpty =
+            !log || (!log.flow && !log.mood && log.symptoms.length === 0 && !log.note);
           if (isEmpty) {
             delete next[date];
           } else {

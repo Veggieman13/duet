@@ -24,7 +24,7 @@ export default function CalendarScreen() {
       new Set(
         Object.keys(logs).filter((key) => {
           const log = logs[key];
-          return log.symptoms.length > 0 || log.note;
+          return log.symptoms.length > 0 || !!log.note || !!log.mood;
         }),
       ),
     [logs],

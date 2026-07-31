@@ -2,6 +2,7 @@ export type FlowLevel = 'light' | 'medium' | 'heavy';
 
 export interface DayLog {
   flow?: FlowLevel;
+  mood?: string;
   symptoms: string[];
   note?: string;
 }
@@ -36,21 +37,31 @@ export const DEFAULT_SETTINGS: CycleSettings = {
   role: 'tracker',
 };
 
-export const FLOW_LEVELS: { value: FlowLevel; label: string }[] = [
-  { value: 'light', label: 'Light' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'heavy', label: 'Heavy' },
+/** Opacity of the period colour used for each flow level, as hex alpha. */
+export const FLOW_LEVELS: { value: FlowLevel; label: string; alpha: string }[] = [
+  { value: 'light', label: 'Light', alpha: '4D' },
+  { value: 'medium', label: 'Medium', alpha: 'A6' },
+  { value: 'heavy', label: 'Heavy', alpha: 'FF' },
 ];
 
-export const SYMPTOMS = [
-  'Cramps',
-  'Headache',
-  'Bloating',
-  'Tender breasts',
-  'Fatigue',
-  'Mood swings',
-  'Acne',
-  'Back pain',
-  'Nausea',
-  'Cravings',
-] as const;
+export const MOODS: { value: string; label: string; emoji: string }[] = [
+  { value: 'happy', label: 'Happy', emoji: '😊' },
+  { value: 'calm', label: 'Calm', emoji: '😌' },
+  { value: 'loving', label: 'Loving', emoji: '🥰' },
+  { value: 'sad', label: 'Sad', emoji: '😢' },
+  { value: 'irritable', label: 'Irritable', emoji: '😤' },
+  { value: 'anxious', label: 'Anxious', emoji: '😰' },
+];
+
+export const SYMPTOMS: { value: string; emoji: string }[] = [
+  { value: 'Cramps', emoji: '⚡' },
+  { value: 'Headache', emoji: '🤕' },
+  { value: 'Bloating', emoji: '🎈' },
+  { value: 'Tender breasts', emoji: '💗' },
+  { value: 'Fatigue', emoji: '😴' },
+  { value: 'Mood swings', emoji: '🎭' },
+  { value: 'Acne', emoji: '🫧' },
+  { value: 'Back pain', emoji: '🔥' },
+  { value: 'Nausea', emoji: '🤢' },
+  { value: 'Cravings', emoji: '🍫' },
+];
