@@ -12,6 +12,9 @@ interface Props {
   month: number;
   markers?: Record<string, DayMarker>;
   size: number;
+  /** Date key of the highlighted day, if any. */
+  selected?: string;
+  onDayPress?: (key: string) => void;
   /** Rendered in the middle of the ring. */
   children?: ReactNode;
 }
@@ -20,7 +23,15 @@ interface Props {
  * The month's days arranged around a circle, coloured by cycle markers.
  * Day 1 sits at the top and the month runs clockwise.
  */
-export function CycleRing({ year, month, markers = {}, size, children }: Props) {
+export function CycleRing({
+  year,
+  month,
+  markers = {},
+  size,
+  selected,
+  onDayPress,
+  children,
+}: Props) {
   const theme = useTheme();
   const today = todayKey();
 
@@ -47,6 +58,7 @@ export function CycleRing({ year, month, markers = {}, size, children }: Props) 
           const key = dateToKey(new Date(year, month, day));
           const marker = markers[key];
           const isToday = key === today;
+          const isSelected = key === selected;
 
           const angle = (i / daysInMonth) * 2 * Math.PI - Math.PI / 2;
           const cx = center + ringRadius * Math.cos(angle);
@@ -68,25 +80,33 @@ export function CycleRing({ year, month, markers = {}, size, children }: Props) 
             color = theme.fertile;
           }
 
+          const stroke = isSelected ? theme.text : isToday ? theme.tint : 'transparent';
+
           return (
-            <G key={day}>
+            <G key={day} onPress={onDayPress ? () => onDayPress(key) : undefined}>
+              {/* Halo makes the selected day obvious against any fill. */}
+              {isSelected && (
+                <Circle cx={cx} cy={cy} r={dotRadius * 1.42} fill={theme.backgroundSelected} />
+              )}
               <Circle
                 cx={cx}
                 cy={cy}
                 r={dotRadius}
                 fill={fill}
-                stroke={isToday ? theme.tint : 'transparent'}
-                strokeWidth={isToday ? 2.5 : 0}
+                stroke={stroke}
+                strokeWidth={isSelected ? 3 : isToday ? 2.5 : 0}
               />
               <SvgText
                 x={cx}
                 y={cy + dotRadius * 0.35}
                 fontSize={dotRadius * 0.95}
-                fontWeight={isToday ? '700' : '500'}
-                fill={isToday && !marker ? theme.tint : color}
+                fontWeight={isToday || isSelected ? '700' : '500'}
+                fill={(isToday || isSelected) && !marker ? theme.text : color}
                 textAnchor="middle">
                 {day}
               </SvgText>
+              {/* Transparent, finger-sized hit area on top. */}
+              <Circle cx={cx} cy={cy} r={dotRadius * 1.45} fill="transparent" />
             </G>
           );
         })}

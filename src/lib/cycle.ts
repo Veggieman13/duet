@@ -142,6 +142,88 @@ export function getCycleInfo(
   };
 }
 
+/**
+ * Rough chance (%) of conceiving from intercourse on a day, keyed by days
+ * relative to ovulation. Based on published fertile-window studies; these are
+ * population estimates, never a guarantee in either direction.
+ */
+const CHANCE_BY_OFFSET: Record<number, number> = {
+  [-5]: 4,
+  [-4]: 9,
+  [-3]: 15,
+  [-2]: 25,
+  [-1]: 30,
+  [0]: 25,
+  [1]: 8,
+  [2]: 2,
+};
+
+export interface DayDetail {
+  date: string;
+  marker?: DayMarker;
+  /** 1-based day within the cycle this date belongs to. */
+  cycleDay?: number;
+  ovulation?: string;
+  /** Days from ovulation; negative is before. */
+  offsetFromOvulation?: number;
+  /** Estimated chance of pregnancy in percent; 0 means "under 1%". */
+  chance: number;
+  chanceLabel: string;
+  /** False until at least one period has been logged. */
+  hasEstimate: boolean;
+}
+
+function chanceLabel(chance: number): string {
+  if (chance >= 25) return 'Peak fertility';
+  if (chance >= 15) return 'High';
+  if (chance >= 5) return 'Medium';
+  if (chance >= 1) return 'Low';
+  return 'Very low';
+}
+
+/** Everything the app can say about one specific date. */
+export function getDayDetail(info: CycleInfo, date: string): DayDetail {
+  const marker = info.markers[date];
+
+  if (!info.lastPeriodStart) {
+    return { date, marker, chance: 0, chanceLabel: 'Unknown', hasEstimate: false };
+  }
+
+  // Every cycle start we know of: logged ones, then projected ones.
+  const starts = info.episodes.map((e) => e.start);
+  for (let k = 1; k <= 18; k++) {
+    starts.push(addDays(info.lastPeriodStart, info.avgCycleLength * k));
+  }
+  starts.sort();
+
+  let index = -1;
+  for (let i = 0; i < starts.length; i++) {
+    if (starts[i] <= date) index = i;
+    else break;
+  }
+  if (index === -1) {
+    // Before any cycle we know about.
+    return { date, marker, chance: 0, chanceLabel: 'Unknown', hasEstimate: false };
+  }
+
+  const cycleStart = starts[index];
+  const nextStart = starts[index + 1] ?? addDays(cycleStart, info.avgCycleLength);
+  const ovulation = addDays(nextStart, -LUTEAL_DAYS);
+  const offset = diffDays(ovulation, date);
+  const chance = CHANCE_BY_OFFSET[offset] ?? 0;
+
+  return {
+    date,
+    marker,
+    cycleDay: diffDays(cycleStart, date) + 1,
+    ovulation,
+    offsetFromOvulation: offset,
+    chance,
+    chanceLabel: chanceLabel(chance),
+    hasEstimate: true,
+  };
+}
+
 export const PHASE_LABELS: Record<Phase, string> = {
   menstrual: 'Period',
   follicular: 'Follicular phase',
