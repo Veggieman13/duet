@@ -1,5 +1,13 @@
 import { Redirect, useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import {
+  PanResponder,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CycleRing } from '@/components/cycle-ring';
@@ -7,17 +15,68 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { PHASE_DESCRIPTIONS, PHASE_LABELS } from '@/lib/cycle';
-import { formatKey, formatShort, monthTitle, todayKey } from '@/lib/dates';
+import { DayMarker, PHASE_DESCRIPTIONS, PHASE_LABELS } from '@/lib/cycle';
+import { dateToKey, formatKey, formatShort, monthTitle, todayKey } from '@/lib/dates';
 import { useCycle } from '@/lib/store';
 import { DISCLAIMER, TIP_SECTIONS } from '@/lib/tips';
 import { MOODS, SYMPTOMS } from '@/lib/types';
+
+/** How far ahead the ring can be swiped — predictions run out beyond this. */
+const MAX_MONTHS_AHEAD = 6;
+
+/** First run of period (logged or predicted) days within the given month. */
+function monthPeriod(year: number, month: number, markers: Record<string, DayMarker>) {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  let start: number | undefined;
+  let end: number | undefined;
+  let predicted = false;
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const marker = markers[dateToKey(new Date(year, month, day))];
+    const isPeriod = marker === 'period' || marker === 'predicted';
+    if (isPeriod && start == null) {
+      start = day;
+      end = day;
+      predicted = marker === 'predicted';
+    } else if (isPeriod && end === day - 1) {
+      end = day;
+    } else if (start != null) {
+      break;
+    }
+  }
+
+  return start == null ? null : { start, end: end!, predicted };
+}
 
 export default function TodayScreen() {
   const { settings, info, logs, syncStatus, refreshFromPartner } = useCycle();
   const theme = useTheme();
   const router = useRouter();
   const { width } = useWindowDimensions();
+
+  /** Months away from the current one; 0 is today's month. */
+  const [monthOffset, setMonthOffset] = useState(0);
+
+  const shiftMonth = (delta: number) =>
+    setMonthOffset((prev) => Math.min(MAX_MONTHS_AHEAD, prev + delta));
+
+  // Horizontal swipes over the ring move between months.
+  const pan = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 14 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
+      onPanResponderRelease: (_, g) => {
+        if (g.dx <= -40) shiftMonth(1);
+        else if (g.dx >= 40) shiftMonth(-1);
+      },
+    }),
+  ).current;
+
+  const view = useMemo(() => {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() + monthOffset);
+    return { year: d.getFullYear(), month: d.getMonth() };
+  }, [monthOffset]);
 
   if (!settings.onboarded) {
     return <Redirect href="/onboarding" />;
@@ -27,7 +86,11 @@ export default function TodayScreen() {
   const todayLog = logs[today];
   const isPartner = settings.role === 'partner';
   const now = new Date();
-  const ringSize = Math.min(330, width - Spacing.three * 2);
+  // Leave room for the month arrows on either side of the ring.
+  const ringSize = Math.min(320, width - Spacing.three * 2 - 56);
+
+  const isCurrentMonth = monthOffset === 0;
+  const viewPeriod = monthPeriod(view.year, view.month, info.markers);
 
   const phaseColor =
     info.phase === 'menstrual'
@@ -35,6 +98,13 @@ export default function TodayScreen() {
       : info.phase === 'fertile'
         ? theme.fertile
         : theme.tint;
+
+  // Browsing another month: colour the centre by what that month holds.
+  const centerColor = isCurrentMonth
+    ? phaseColor
+    : viewPeriod
+      ? theme.period
+      : theme.textSecondary;
 
   const countdown =
     info.daysUntilNextPeriod == null
@@ -59,18 +129,29 @@ export default function TodayScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <View>
-              <ThemedText type="subtitle">{monthTitle(now.getFullYear(), now.getMonth())}</ThemedText>
+            <View style={styles.headerTitles}>
+              <ThemedText type="subtitle" numberOfLines={1}>
+                {monthTitle(view.year, view.month)}
+              </ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
-                {formatKey(today)}
+                {isCurrentMonth ? formatKey(today) : 'Swipe the ring to browse months'}
               </ThemedText>
             </View>
-            {info.cycleDay != null && (
+            {isCurrentMonth && info.cycleDay != null && (
               <View style={[styles.cycleDayPill, { backgroundColor: theme.backgroundElement }]}>
                 <ThemedText type="smallBold" style={{ color: phaseColor }}>
                   Day {info.cycleDay}
                 </ThemedText>
               </View>
+            )}
+            {!isCurrentMonth && (
+              <Pressable
+                onPress={() => setMonthOffset(0)}
+                style={[styles.cycleDayPill, { backgroundColor: theme.tint }]}>
+                <ThemedText type="smallBold" style={{ color: theme.onAccent }}>
+                  Today
+                </ThemedText>
+              </Pressable>
             )}
           </View>
 
@@ -96,14 +177,24 @@ export default function TodayScreen() {
             </ThemedView>
           )}
 
-          <View style={styles.ringWrap}>
+          <View style={styles.ringWrap} {...pan.panHandlers}>
+            <Pressable
+              onPress={() => shiftMonth(-1)}
+              hitSlop={12}
+              style={styles.monthArrow}
+              accessibilityLabel="Previous month">
+              <ThemedText type="subtitle" themeColor="textSecondary">
+                ‹
+              </ThemedText>
+            </Pressable>
+
             <CycleRing
-              year={now.getFullYear()}
-              month={now.getMonth()}
+              year={view.year}
+              month={view.month}
               markers={info.markers}
               size={ringSize}>
-              <View style={[styles.ringCenter, { backgroundColor: phaseColor }]}>
-                {countdown ? (
+              <View style={[styles.ringCenter, { backgroundColor: centerColor }]}>
+                {isCurrentMonth && countdown ? (
                   <>
                     <ThemedText style={[styles.centerBig, { color: theme.onAccent }]}>
                       {countdown.big}
@@ -116,7 +207,7 @@ export default function TodayScreen() {
                       {PHASE_LABELS[info.phase]}
                     </ThemedText>
                   </>
-                ) : (
+                ) : isCurrentMonth ? (
                   <>
                     <ThemedText type="smallBold" style={{ color: theme.onAccent }}>
                       Welcome
@@ -125,9 +216,37 @@ export default function TodayScreen() {
                       Log your period to see predictions
                     </ThemedText>
                   </>
+                ) : viewPeriod ? (
+                  <>
+                    <ThemedText style={[styles.centerMedium, { color: theme.onAccent }]}>
+                      {viewPeriod.start}–{viewPeriod.end}
+                    </ThemedText>
+                    <ThemedText type="small" style={[styles.centerHint, { color: theme.onAccent }]}>
+                      {viewPeriod.predicted ? 'period expected' : 'period logged'}
+                    </ThemedText>
+                    <View style={styles.centerDivider} />
+                    <ThemedText type="smallBold" style={{ color: theme.onAccent }}>
+                      {monthTitle(view.year, view.month).split(' ')[0]}
+                    </ThemedText>
+                  </>
+                ) : (
+                  <ThemedText type="small" style={[styles.centerHint, { color: theme.onAccent }]}>
+                    No period this month
+                  </ThemedText>
                 )}
               </View>
             </CycleRing>
+
+            <Pressable
+              onPress={() => shiftMonth(1)}
+              hitSlop={12}
+              disabled={monthOffset >= MAX_MONTHS_AHEAD}
+              style={[styles.monthArrow, monthOffset >= MAX_MONTHS_AHEAD && styles.dimmed]}
+              accessibilityLabel="Next month">
+              <ThemedText type="subtitle" themeColor="textSecondary">
+                ›
+              </ThemedText>
+            </Pressable>
           </View>
 
           <ThemedView type="backgroundElement" style={styles.phaseCard}>
@@ -271,6 +390,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: Spacing.two,
+  },
+  headerTitles: {
+    flexShrink: 1,
   },
   cycleDayPill: {
     paddingHorizontal: Spacing.three,
@@ -278,7 +401,17 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   ringWrap: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  monthArrow: {
+    width: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dimmed: {
+    opacity: 0.3,
   },
   ringCenter: {
     flex: 1,
@@ -291,6 +424,11 @@ const styles = StyleSheet.create({
   centerBig: {
     fontSize: 44,
     lineHeight: 50,
+    fontWeight: '700',
+  },
+  centerMedium: {
+    fontSize: 34,
+    lineHeight: 40,
     fontWeight: '700',
   },
   centerDivider: {
