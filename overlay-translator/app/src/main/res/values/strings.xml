@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Overlay Translate</string>
+    <string name="app_tagline">Read the screen, translate it, and show the result in place. Everything runs on this phone.</string>
+
+    <string name="section_languages">Languages</string>
+    <string name="label_read">Read the screen in</string>
+    <string name="label_show">Show it in</string>
+
+    <string name="section_offline_data">Offline data</string>
+    <string name="action_download">Download / check data</string>
+    <string name="download_ocr">Downloading %1$s text data…</string>
+    <string name="download_ocr_progress">Downloading %1$s text data… %2$d%%</string>
+    <string name="download_translation">Downloading the translation model…</string>
+    <string name="download_done">Everything is downloaded. You can go offline now.</string>
+    <string name="status_ocr_ready">%1$s text data is installed.</string>
+    <string name="status_ocr_missing">%1$s text data is not downloaded yet.</string>
+
+    <string name="section_permissions">Permissions</string>
+    <string name="status_overlay_granted">Can draw over other apps</string>
+    <string name="status_overlay_missing">Needs permission to draw over other apps</string>
+    <string name="status_notifications_granted">Notifications allowed</string>
+    <string name="status_notifications_missing">Notifications are off — Android needs one while the overlay runs</string>
+    <string name="action_grant_overlay">Allow drawing over apps</string>
+    <string name="action_grant_notifications">Allow notifications</string>
+
+    <string name="section_behaviour">Behaviour</string>
+    <string name="label_freeze">Freeze the screen behind the translation</string>
+    <string name="label_freeze_explainer">Keeps the captured screenshot in place so the translation cannot drift while you read it. Turn it off to see the live screen behind the boxes.</string>
+
+    <string name="section_overlay">Overlay</string>
+    <string name="status_running">The bubble is running. Tap it over any app to translate.</string>
+    <string name="status_not_running">The bubble is not running.</string>
+    <string name="action_start">Start bubble</string>
+    <string name="action_stop">Stop</string>
+
+    <string name="how_it_works">How it works: tap the bubble and the app takes one screenshot, reads the text on it, translates it on-device, and paints the translation over the original words. Drag the bubble to move it, hold it to stop. Android will ask permission to capture the screen each time you start — that is a system rule, not a setting.</string>
+
+    <string name="bubble_content_description">Translate the screen</string>
+
+    <string name="notification_channel_name">Translation overlay</string>
+    <string name="notification_channel_description">Shown while the translation bubble is running.</string>
+    <string name="notification_title">Translation overlay is running</string>
+    <string name="notification_text">Tap the bubble over any app to translate the screen.</string>
+
+    <string name="overlay_dismiss_hint">%1$d lines translated · tap to close</string>
+
+    <string name="error_no_overlay_permission">Allow drawing over other apps first.</string>
+    <string name="error_capture_denied">Screen capture was not allowed, so there is nothing to read.</string>
+    <string name="error_capture_failed">Could not grab the screen. Try again.</string>
+    <string name="error_no_text_found">No %1$s text found on this screen.</string>
+    <string name="error_missing_language_data">Download the %1$s text data first.</string>
+    <string name="error_same_language">Pick two different languages.</string>
+    <string name="error_generic">Something went wrong while translating.</string>
+</resources>

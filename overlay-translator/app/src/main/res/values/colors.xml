@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bubble_background">#F21B1826</color>
+    <color name="bubble_stroke">#806C5CE0</color>
+    <color name="bubble_foreground">#FFFFFFFF</color>
+    <color name="launcher_background">#FF1B1826</color>
+</resources>
