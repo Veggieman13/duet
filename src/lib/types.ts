@@ -12,6 +12,15 @@ export type LogsByDate = Record<string, DayLog>;
 
 export type Role = 'tracker' | 'partner';
 
+/** 'system' follows the phone; the others override it. */
+export type ThemePreference = 'system' | 'light' | 'dark';
+
+export const THEME_OPTIONS: { value: ThemePreference; label: string; emoji: string }[] = [
+  { value: 'system', label: 'System', emoji: '📱' },
+  { value: 'light', label: 'Light', emoji: '☀️' },
+  { value: 'dark', label: 'Dark', emoji: '🌙' },
+];
+
 export interface CycleSettings {
   onboarded: boolean;
   /** Fallback average cycle length in days, used until enough periods are logged. */
@@ -28,6 +37,8 @@ export interface CycleSettings {
   partnerLinked?: boolean;
   /** Last successful sync, ISO timestamp. */
   lastSyncAt?: string;
+  /** Light/dark preference, independent of the phone's setting. */
+  theme: ThemePreference;
 }
 
 export const DEFAULT_SETTINGS: CycleSettings = {
@@ -35,6 +46,7 @@ export const DEFAULT_SETTINGS: CycleSettings = {
   cycleLength: 28,
   periodLength: 5,
   role: 'tracker',
+  theme: 'system',
 };
 
 /** Opacity of the period colour used for each flow level, as hex alpha. */

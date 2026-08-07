@@ -243,3 +243,8 @@ export function useCycle(): CycleContextValue {
   if (!ctx) throw new Error('useCycle must be used inside CycleProvider');
   return ctx;
 }
+
+/** Like useCycle, but returns null outside the provider (used by theming). */
+export function useCycleOptional(): CycleContextValue | null {
+  return useContext(CycleContext);
+}

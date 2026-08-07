@@ -1,21 +1,20 @@
 import { useEffect, useState } from 'react';
-import { useColorScheme as useRNColorScheme } from 'react-native';
+import { useColorScheme as useSystemColorScheme } from 'react-native';
+
+import { useCycleOptional } from '@/lib/store';
 
 /**
- * To support static rendering, this value needs to be re-calculated on the client side for web
+ * Same as the native version, but static rendering means the system scheme is
+ * only trustworthy after hydration.
  */
-export function useColorScheme() {
+export function useColorScheme(): 'light' | 'dark' {
   const [hasHydrated, setHasHydrated] = useState(false);
+  useEffect(() => setHasHydrated(true), []);
 
-  useEffect(() => {
-    setHasHydrated(true);
-  }, []);
+  const system = useSystemColorScheme();
+  const preference = useCycleOptional()?.settings.theme ?? 'system';
 
-  const colorScheme = useRNColorScheme();
-
-  if (hasHydrated) {
-    return colorScheme;
-  }
-
-  return 'light';
+  if (preference === 'light' || preference === 'dark') return preference;
+  if (!hasHydrated) return 'light';
+  return system === 'dark' ? 'dark' : 'light';
 }

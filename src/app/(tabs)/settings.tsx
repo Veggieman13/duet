@@ -18,6 +18,7 @@ import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useCycle } from '@/lib/store';
+import { THEME_OPTIONS } from '@/lib/types';
 
 function confirm(title: string, message: string, action: () => void, destructiveLabel: string) {
   if (Platform.OS === 'web') {
@@ -232,6 +233,36 @@ export default function SettingsScreen() {
           )}
 
           <ThemedView type="backgroundElement" style={styles.card}>
+            <ThemedText type="smallBold">Appearance</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Choose how Duet looks, whatever your phone is set to.
+            </ThemedText>
+            <View style={styles.themeRow}>
+              {THEME_OPTIONS.map(({ value, label, emoji }) => (
+                <Pressable
+                  key={value}
+                  onPress={() => updateSettings({ theme: value })}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: settings.theme === value }}
+                  style={({ pressed }) => [
+                    styles.themeOption,
+                    {
+                      backgroundColor:
+                        settings.theme === value ? theme.tint : theme.backgroundSelected,
+                    },
+                    pressed && styles.dimmed,
+                  ]}>
+                  <ThemedText
+                    type="smallBold"
+                    style={settings.theme === value ? { color: theme.onAccent } : undefined}>
+                    {emoji} {label}
+                  </ThemedText>
+                </Pressable>
+              ))}
+            </View>
+          </ThemedView>
+
+          <ThemedView type="backgroundElement" style={styles.card}>
             <ThemedText type="smallBold">💞 Partner sharing</ThemedText>
             {sharingCard()}
             {shareError && (
@@ -288,6 +319,16 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.three,
     padding: Spacing.three,
     gap: Spacing.two,
+  },
+  themeRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  themeOption: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: Spacing.two,
+    borderRadius: Spacing.three,
   },
   inviteCode: {
     fontSize: 36,

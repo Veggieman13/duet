@@ -34,7 +34,9 @@ export const Colors = {
     periodSoft: '#472226',
     fertile: '#35C4AC',
     fertileSoft: '#1B3A34',
-    onAccent: '#ffffff',
+    // Dark mode accents are light, so text on them must be dark: white would
+    // sit at ~2.5:1 contrast, deep plum sits above 5:1.
+    onAccent: '#2A1218',
   },
 } as const;
 

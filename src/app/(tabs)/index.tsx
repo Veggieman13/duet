@@ -329,7 +329,7 @@ export default function TodayScreen() {
                       )}
                       {!!statusFor(detail) && (
                         <>
-                          <View style={styles.centerDivider} />
+                          <View style={[styles.centerDivider, { backgroundColor: theme.onAccent }]} />
                           <ThemedText type="smallBold" style={{ color: theme.onAccent }}>
                             {statusFor(detail)}
                           </ThemedText>
@@ -344,7 +344,7 @@ export default function TodayScreen() {
                       <ThemedText type="small" style={{ color: theme.onAccent }}>
                         {countdown.small}
                       </ThemedText>
-                      <View style={styles.centerDivider} />
+                      <View style={[styles.centerDivider, { backgroundColor: theme.onAccent }]} />
                       <ThemedText type="smallBold" style={{ color: theme.onAccent }}>
                         {PHASE_LABELS[info.phase]}
                       </ThemedText>
@@ -366,7 +366,7 @@ export default function TodayScreen() {
                       <ThemedText type="small" style={[styles.centerHint, { color: theme.onAccent }]}>
                         {viewPeriod.predicted ? 'period expected' : 'period logged'}
                       </ThemedText>
-                      <View style={styles.centerDivider} />
+                      <View style={[styles.centerDivider, { backgroundColor: theme.onAccent }]} />
                       <ThemedText type="smallBold" style={{ color: theme.onAccent }}>
                         {monthTitle(view.year, view.month).split(' ')[0]}
                       </ThemedText>
@@ -606,7 +606,7 @@ const styles = StyleSheet.create({
   centerDivider: {
     height: 1,
     width: 44,
-    backgroundColor: 'rgba(255,255,255,0.45)',
+    opacity: 0.45,
     marginVertical: Spacing.two,
   },
   centerHint: {
