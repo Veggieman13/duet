@@ -131,24 +131,78 @@ creatures, and it makes the top of every chain feel like an arrival.
 It also solves your art problem's hardest part: apex forms are the ones that need to be
 spectacular, and folklore gives you centuries of visual reference to work from.
 
-## 6. A concrete set for Hatchery
+## 6. A concrete set for Hatchery — real animals that became myths
 
-Eight families, eight apex forms, all public domain, deliberately spread across cultures so
-the game doesn't read as generic Euro-fantasy:
+The zoo/safari instinct and the mythology instinct resolve into one thing, and it's better
+than either alone.
 
-| Family | Theme | Apex (tier 10) |
-|---|---|---|
-| Ember | fire, rebirth | **Phoenix** (Greek/Egyptian) |
-| Tide | deep water | **Kraken** (Norse) |
-| Hollow | forest, trickery | **Kitsune** (Japanese) |
-| Cairn | stone, earth | **Golem** (Jewish folklore) |
-| Gale | sky, storm | **Roc** (Persian/Arabic) |
-| Rime | ice, mountain | **Yeti** (Himalayan) |
-| Verdant | growth, grace | **Qilin** (Chinese) |
-| Umbra | night, dreams | **Baku**, the dream-eater (Japanese) |
+**Every chain starts as a real animal and climbs into the myth that real animal produced.**
+Not an arbitrary pairing — these are the actual historical derivations. People saw these
+animals and invented these creatures from them.
 
-Every one of those is free worldwide, none belongs to a company, and none is sacred to a
-living tradition in a way that would cause trouble. Draw them your own way and you're clear.
+| Family | Tier 1–4 (real) | Tier 8–10 (myth) | The real historical link |
+|---|---|---|---|
+| Ember | Salamander | **Phoenix** | Medieval Europe believed salamanders lived in fire |
+| Tide | Giant squid | **Kraken** | Norse sailors' squid encounters |
+| Hollow | Fox | **Kitsune** | Direct — the fox *is* the kitsune |
+| Stone | Hippopotamus | **Behemoth** | Behemoth has long been identified with the hippo |
+| Gale | Eagle | **Roc** | Travellers' tales of oversized eagles |
+| Rime | Brown bear | **Yeti** | The Himalayan brown bear is the leading explanation |
+| Verdant | Giraffe | **Qilin** | Zheng He's 1414 giraffe was presented at court as a qilin; Japanese still calls the giraffe *kirin* |
+| Umbra | Tapir | **Baku** | 獏 is the Japanese word for both the tapir and the dream-eater |
+
+Why this is the right answer:
+
+- **It keeps evolution-as-merge intact.** A straight zoo game can't do this — merging two
+  zebras into a giraffe is nonsense, and you'd be back to arbitrary chains, which is the
+  exact problem the evolution idea solved. Animal → myth is a chain with a real direction.
+- **It gets the warmth of real animals** at the bottom, where players spend most of their
+  time, plus reference photos for the tiers you'll draw most often.
+- **It earns the apex payoff.** Recognition lands hardest at tier 10, exactly where you want
+  it, and tiers 5–7 are yours to make strange as the animal drifts toward the myth.
+- **It's a marketing line and an art bible in one sentence:** every creature here is a real
+  animal and the legend people built out of it. Nobody else in the merge category is saying
+  anything that specific.
+
+All eight myths are public domain worldwide, none belongs to a company, and none is sacred
+to a living tradition in a way that would cause trouble. Draw them your own way and you're
+clear.
+
+## 7. Naming — don't call it Merge Anything
+
+"Merge Safari" and "Merge Zoo" are both taken several times over, and the animal-merge
+namespace generally is saturated: [Merge Safari – Fantastic
+Isle](https://play.google.com/store/apps/details?id=com.SuperAwesome.MergeSafari), [Merge
+Zoo by Game Circus](https://play.google.com/store/apps/details?id=com.gamecircus.zoo), [Zoo
+Merge](https://play.google.com/store/apps/details?id=com.smashlabjoko.zoomerge), [Zoo Merge:
+Match Game](https://play.google.com/store/apps/details?id=com.rnstudio.animalmerge), [Merge
+Animals – My Perfect Zoo](https://play.google.com/store/apps/details?id=com.westover.animals),
+and more. Note that "Merge Animals Zoo: Safari Park" ships under the package id
+`com.noxgames.merge.puppet.soccer` — a reskinned soccer game. That's the quality floor of
+this category, which is both a warning and an opportunity.
+
+Three reasons to avoid a `Merge <Noun>` title:
+
+1. **No trademark.** A purely descriptive title can't be protected, so you can never stop
+   anyone cloning your name.
+2. **Hopeless ASO.** You'd be competing for "merge zoo" against established games with
+   millions of installs. A new developer ranks nowhere on those terms, ever.
+3. **It signals shovelware.** The category's reputation is set by reskins, and a generic
+   title puts you in that bucket before anyone sees a screenshot.
+
+**Do what the category's actual winners do:** a distinctive brand name, with the keyword in
+the subtitle. Travel Town — Merge Adventure. Gossip Harbor: Merge & Story. Merge Mansion is
+the exception that proves it, and it launched with a large marketing budget.
+
+Suggested: **Wildlore — Merge & Evolve.** One word that carries both halves of the concept
+(real wildlife + folklore), distinctive enough to be protectable, and it appears unused on
+both stores as of August 2026. Other directions: Beastlore, Menagerie, The Wilding, Kirin.
+
+Search any candidate on USPTO TESS, UKIPO and EUIPO in Class 9 and Class 41 before buying a
+domain — a store search only tells you about apps, not about trademark holders in other
+industries who can still object.
+
+## 8. Before you ship
 
 ## 7. Before you ship
 
