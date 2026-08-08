@@ -31,7 +31,12 @@ the app is their first, built to learn and ship to both stores.
 ## Status / infrastructure
 
 - Google Play: closed test on Alpha track, com.mgroenteman.duet, v1.1.0 with sharing
-- iOS: waiting on Apple Developer enrollment; wife's iPhone joins via TestFlight then
+- iOS: enrolled. App Store Connect record is **"Duet (c96d82)"** (App Apple ID 6799089427)
+  — the suffix is EAS's uniquifier because plain "Duet" was taken; rename before public
+  release. v1.1.0 build 1 delivered; wife tests via TestFlight.
+- iOS uploads warn ITMS-90863 (Apple-silicon Mac symbol check vs ExpoModulesCore). Harmless
+  for iPhone/iPad; silence it by unchecking Mac availability in App Store Connect →
+  Pricing and Availability.
 - EAS project: jarkan/duet (profiles: preview=APK, production=AAB, remote versions)
 - Supabase project: hohvrrtwnrvmrviapyus.supabase.co (anonymous sign-ins ON, schema applied)
 - Web hosting: GitHub Pages from /docs — landing page, privacy.html, delete-data.html
