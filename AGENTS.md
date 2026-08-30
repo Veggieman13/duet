@@ -34,9 +34,13 @@ the app is their first, built to learn and ship to both stores.
 - iOS: enrolled. App Store Connect record is **"Duet (c96d82)"** (App Apple ID 6799089427)
   — the suffix is EAS's uniquifier because plain "Duet" was taken; rename before public
   release. v1.1.0 build 1 delivered; wife tests via TestFlight.
-- iOS uploads warn ITMS-90863 (Apple-silicon Mac symbol check vs ExpoModulesCore). Harmless
-  for iPhone/iPad; silence it by unchecking Mac availability in App Store Connect →
-  Pricing and Availability.
+- **ITMS-90863 on an iOS upload is not cosmetic — treat it as a launch crash.** v1.1.0 build 1
+  died in dyld on every launch: `ExpoCamera.framework` referenced an `AnyModule._decorateObject`
+  symbol that the bundled `ExpoModulesCore.framework` didn't export. Apple's Apple-silicon symbol
+  check had flagged that exact symbol in the delivery email; the warning was the same defect
+  caught statically. Cause was Expo patch skew (expo 57.0.4 / modules-core 57.0.3 with a
+  57.0.3 camera, straddling the expo-modules-jsi split). Fix: keep every expo package on the
+  same current 57.x patch line, and rebuild with `--clear-cache`.
 - EAS project: jarkan/duet (profiles: preview=APK, production=AAB, remote versions)
 - Supabase project: hohvrrtwnrvmrviapyus.supabase.co (anonymous sign-ins ON, schema applied)
 - Web hosting: GitHub Pages from /docs — landing page, privacy.html, delete-data.html
