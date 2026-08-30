@@ -92,30 +92,47 @@ Cost model: the ability *is* the reward for reaching the tier. No charges, no co
 resource. An ability currency would stack a second economy on top of energy and slow the
 whole thing down again.
 
-## 6. The chain meter — the actual speed mechanic
+## 6. The chain — merges per spawn, not merges per second
 
-This is the highest-value idea in this document.
+> **Revised after playtest.** The first version was a 2.5s combo window. It failed, and the
+> reason is worth keeping: it contradicted the ability system. Surge rewards you for arranging
+> the board; a clock punishes you for taking the time to arrange it. Worse, the cheapest way to
+> hold a timed chain was to spam the nest and merge tier-1s on arrival — so the timer actively
+> incentivised the least interesting play in the game.
+>
+> The mistake underneath it: **match-3 games mostly aren't timed.** Candy Crush limits *moves*,
+> not seconds. Its dynamism comes from cascades and instant feedback, not from rushing the
+> player. The stopwatch was imported from a genre that doesn't use one.
 
-Merge games have no time pressure at all, which is why they feel slow even when a lot is
-happening. Add an **optional** combo window:
+**A chain is how many merges you pull out of the board before tapping the nest again.** No
+clock. Take as long as you like.
 
 ```
-after any merge, a 2.5s window opens
-each merge inside the window extends it and raises the multiplier
-  chain 1-2    1.0x
-  chain 3-4    1.5x
-  chain 5-7    2.0x
-  chain 8+     3.0x  (cap)
-auto-merges from ability cascades COUNT toward the chain
+each of your own merges          chain + 1
+tapping the nest                 banks the chain, resets to 0
+  chain 3+    1.5x
+  chain 5+    2.0x
+  chain 8+    3.0x  (cap)
+cascade merges pay at the current multiplier but never climb it
 ```
 
-**Critical balance rule: the multiplier applies to coins and XP only, never to item tiers.**
-Chains must never manufacture progression, or fast fingers break the economy overnight.
+**Critical balance rule, unchanged: the multiplier applies to coins and XP only, never to item
+tiers.** Chains must never manufacture progression.
 
-That gives you match-3 tempo without match-3 pressure. A player who wants to sit and think
-loses only a bonus; a player who wants to go fast has something to be good at. And because
-cascades feed the chain, a big tier-8 merge can carry you to 3x on its own — the game
-rewarding you for having built something strong.
+What this buys:
+
+- **Organising the board is now the skill the multiplier measures**, so it agrees with Surge
+  instead of fighting it. A tidy board yields a long run; a scattered one forces you back to
+  the nest.
+- **It gives a session a rhythm**: stock up from the nest, then go on a run. That phrasing is
+  the loop, and it emerges from the rule rather than being imposed by a timer.
+- **It is self-paced**, which suits the audience merge games actually have. Nobody plays these
+  under time pressure by choice.
+- The nest button states the cost when a chain is live ("ends your ×2 chain"), so breaking a
+  run is always a visible decision rather than an accident.
+
+If it now plays too placid, the fix is an *additive* speed bonus — a small extra coin award for
+quick merges — never a return to a decaying window. Reward tempo; don't require it.
 
 ## 7. Two UX changes worth as much as any ability
 

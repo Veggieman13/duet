@@ -134,7 +134,7 @@
 
   <div class="foot">
     <button class="nest" id="nest">Tap the nest — 1 energy</button>
-    <p class="hint" id="hint">Tap a creature to merge it with a matching neighbour.</p>
+    <p class="hint" id="hint">Merge as many times as you can before tapping the nest again.</p>
   </div>
 </div>
 
@@ -157,10 +157,12 @@
     <p>Surge always does something. With no pair in range it drags the nearest creature to you
       (<b>Gathered</b>) to set up your next merge; if it is hemmed in it refunds energy instead.
       The question: does the cascade read as a consequence of <b>where you chose to merge</b>?</p>
-    <h3>3 · The chain meter</h3>
-    <p>Each merge opens a 2.5s window. <b>Only your own merges climb the multiplier</b> — cascade
-      merges pay coins and extend the window, but never raise it for you. A big cascade hands you
-      time to keep playing rather than playing on your behalf. Multiplier affects coins only.</p>
+    <h3>3 · The chain</h3>
+    <p>A chain is <b>how many merges you pull out of the board before tapping the nest again</b>.
+      There is no clock — take as long as you like arranging pieces. Reaching 3, 5 and 8 merges
+      raises the multiplier to 1.5×, 2× and 3×, and tapping the nest banks it and starts over.</p>
+    <p>Only your own merges climb it; cascade merges pay coins at the current multiplier but
+      never raise it for you. The loop this is chasing: <b>stock up, then go on a run.</b></p>
     <h3>Deliberately unlike the real game</h3>
     <ul>
       <li>Energy regenerates ~40× faster so a session is testable</li>
@@ -168,6 +170,7 @@
       <li>One family stands in for all eight, so Surge and Ignite sit back to back</li>
       <li>Placeholder tiles — tier as heat and a numeral, no art</li>
       <li>Long-press any creature to bulk-merge every pair of that tier</li>
+      <li>Coins only ever come from the multiplier — it never affects tiers</li>
       <li>Vibration works on Android; iOS Safari ignores it</li>
     </ul>
     <button class="close" id="closesheet">Back to the board</button>
@@ -178,7 +181,7 @@
 (function(){
   "use strict";
 
-  var COLS=6, ROWS=8, GAP=6, MAXT=10, CASCADE_CAP=8, CHAIN_MS=2500, ABILITY_FLOOR=5;
+  var COLS=6, ROWS=8, GAP=6, MAXT=10, CASCADE_CAP=8, ABILITY_FLOOR=5;
   var ENERGY_MAX=50, ENERGY_MS=3000;
 
   var NAMES=["","Ember Egg","Newt","Salamander","Firenewt","Cinderling","Ashwyrm","Emberdrake","Radiant","Sunborn","Phoenix"];
@@ -192,7 +195,7 @@
   var elNest=document.getElementById("nest"), elHint=document.getElementById("hint");
 
   var cell=52, items=[], nextId=1, coins=0, energy=30, best=1;
-  var chain=0, chainUntil=0, busy=false, energyAcc=0;
+  var chain=0, busy=false, energyAcc=0;
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function pause(ms){ return new Promise(function(r){ setTimeout(r, reduced?10:ms); }); }
@@ -303,22 +306,30 @@
 
   /* ---------- economy ---------- */
   function mult(){ if(chain>=8) return 3; if(chain>=5) return 2; if(chain>=3) return 1.5; return 1; }
+  function nextStep(){ if(chain>=8) return null; if(chain>=5) return 8; if(chain>=3) return 5; return 3; }
   function bumpChain(byPlayer){
-    var now=Date.now();
-    if(byPlayer){ chain = now < chainUntil ? chain+1 : 1; }
-    chainUntil = now + CHAIN_MS;   // cascades buy you time, they don't climb for you
+    // A chain is how many merges you pull out of the board before reaching for the
+    // nest again. No clock: organising the board is the skill, not tapping fast.
+    if(byPlayer) chain++;
     renderChain();
   }
-  function renderChain(){
-    var live = Date.now() < chainUntil && chain>0;
-    elChainStat.classList.toggle("live", live);
-    elChainV.textContent = live ? (chain + "  ×" + mult()) : "—";
+  function endChain(){
+    if(chain>=3) toast("Banked — " + chain + " merges at \u00d7" + mult(), true);
+    chain=0; renderChain();
   }
-  function tickChain(){
-    var left = chainUntil - Date.now();
-    elCbar.style.width = left>0 ? Math.max(0,Math.min(100,left/CHAIN_MS*100))+"%" : "0%";
-    if(left<=0 && chain>0){ chain=0; renderChain(); }
-    requestAnimationFrame(tickChain);
+  function renderChain(){
+    var live = chain>0;
+    elChainStat.classList.toggle("live", live);
+    elChainV.textContent = live ? (chain + "  \u00d7" + mult()) : "\u2014";
+    var step=nextStep();
+    if(!live){ elCbar.style.width="0%"; }
+    else if(step===null){ elCbar.style.width="100%"; }
+    else {
+      var floor = chain>=5?5:(chain>=3?3:0);
+      elCbar.style.width = Math.round((chain-floor)/(step-floor)*100)+"%";
+    }
+    elNest.textContent = energy<1 ? "Out of energy — wait a moment"
+      : (chain>=3 ? "Tap the nest — ends your \u00d7"+mult()+" chain" : "Tap the nest — 1 energy");
   }
   function pay(tier){
     var base = tier*tier*2;
@@ -331,7 +342,7 @@
     elEnergy.textContent=energy;
     elEbar.style.width=(energy/ENERGY_MAX*100)+"%";
     elNest.disabled = energy<1;
-    elNest.textContent = energy<1 ? "Out of energy — wait a moment" : "Tap the nest — 1 energy";
+    renderChain();
   }
 
   /* ---------- merging ---------- */
@@ -547,6 +558,7 @@
     if(energy<1||busy) return;
     var free=freeCells();
     if(!free.length){ toast("Board is full"); hint("Board full — merge to make room."); return; }
+    endChain();
     setEnergy(energy-1);
     var spot=free[Math.floor(Math.random()*free.length)];
     var tier = Math.random()<0.12 ? 2 : 1;
@@ -571,6 +583,5 @@
     energyAcc++;
     if(energy<ENERGY_MAX) setEnergy(energy+1);
   }, ENERGY_MS);
-  requestAnimationFrame(tickChain);
 })();
 </script>
