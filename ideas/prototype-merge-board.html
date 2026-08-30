@@ -1,0 +1,496 @@
+<title>Ember Chain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap">
+<style>
+  :root{
+    --pitch:#16110F; --bark:#241B18; --ash:#3A2C27; --ash-hi:#4A3830;
+    --bone:#F2E6DA; --smoke:#A8968C; --ember:#FF6B35; --gold:#F0A830; --jade:#4FB783;
+    --gap:6px; --cell:52px;
+    --display:"Fraunces",Georgia,"Times New Roman",serif;
+    --ui:"Archivo","Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0; background:var(--pitch); color:var(--bone);
+    font-family:var(--ui); overflow:hidden; overscroll-behavior:none;
+    height:100dvh;
+    background-image:radial-gradient(120% 60% at 50% 106%, rgba(255,107,53,.16), transparent 70%);
+  }
+  #app{height:100dvh;display:grid;grid-template-rows:auto auto 1fr auto;gap:8px;padding:10px 12px 12px;max-width:520px;margin:0 auto}
+
+  /* ---- header ---- */
+  .top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .wordmark{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:.01em;margin:0}
+  .wordmark span{color:var(--ember)}
+  .iconbtn{
+    background:var(--bark);color:var(--smoke);border:1px solid var(--ash);
+    width:30px;height:30px;border-radius:9px;font-family:var(--ui);font-size:13px;font-weight:600;
+    cursor:pointer;flex:none
+  }
+  .iconbtn:hover{color:var(--bone);border-color:var(--ash-hi)}
+  .iconbtn:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+
+  /* ---- hud ---- */
+  .hud{display:grid;grid-template-columns:1fr 1fr 1.35fr;gap:6px}
+  .stat{background:var(--bark);border:1px solid var(--ash);border-radius:11px;padding:6px 9px;min-width:0}
+  .stat .k{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--smoke);display:block;margin-bottom:1px}
+  .stat .v{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15;display:block}
+  .v-coins{color:var(--gold)}
+  .v-energy{color:var(--jade)}
+  .chain{position:relative;overflow:hidden}
+  .chain .v{color:var(--smoke)}
+  .chain.live .v{color:var(--ember)}
+  .chainbar{position:absolute;left:0;bottom:0;height:3px;width:0%;background:var(--ember);transition:width .1s linear}
+  .energybar{position:absolute;left:0;bottom:0;height:3px;background:var(--jade);opacity:.55}
+  .stat{position:relative}
+
+  /* ---- board ---- */
+  .boardwrap{display:flex;align-items:center;justify-content:center;min-height:0}
+  #board{position:relative;touch-action:none}
+  .well{position:absolute;background:var(--bark);border:1px solid rgba(58,44,39,.9);border-radius:10px}
+  .tile{
+    position:absolute;top:0;left:0;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-variant-numeric:tabular-nums;cursor:grab;
+    transition:transform .17s cubic-bezier(.3,.9,.35,1), opacity .15s ease, box-shadow .2s ease;
+    will-change:transform;user-select:none;box-shadow:0 2px 0 rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.14)
+  }
+  .tile.drag{cursor:grabbing;transition:none;z-index:40;box-shadow:0 10px 22px rgba(0,0,0,.55)}
+  .tile.pop{animation:pop .26s cubic-bezier(.3,1.4,.5,1)}
+  .tile.vanish{opacity:0;transform-origin:center}
+  .tile.hot{animation:breathe 2.6s ease-in-out infinite}
+  @keyframes pop{0%{transform:var(--tf) scale(.55)}60%{transform:var(--tf) scale(1.12)}100%{transform:var(--tf) scale(1)}}
+  @keyframes breathe{0%,100%{box-shadow:0 2px 0 rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.14), 0 0 12px rgba(255,140,60,.45)}50%{box-shadow:0 2px 0 rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.14), 0 0 26px rgba(255,170,90,.75)}}
+
+  /* ---- footer ---- */
+  .foot{display:flex;flex-direction:column;gap:7px;align-items:center}
+  .nest{
+    width:100%;padding:15px;border-radius:15px;border:1px solid #8A3C18;cursor:pointer;
+    background:linear-gradient(180deg,#FF7B45,#E2551F);color:#2A1006;
+    font-family:var(--ui);font-size:15px;font-weight:700;letter-spacing:.02em;
+    box-shadow:0 3px 0 #8A3C18; transition:transform .08s ease, box-shadow .08s ease
+  }
+  .nest:active{transform:translateY(3px);box-shadow:0 0 0 #8A3C18}
+  .nest:disabled{background:var(--ash);color:var(--smoke);border-color:var(--ash);box-shadow:0 3px 0 #1D1512;cursor:not-allowed}
+  .nest:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+  .hint{font-size:11px;color:var(--smoke);text-align:center;line-height:1.45;min-height:16px}
+  .hint b{color:var(--bone);font-weight:600}
+
+  /* ---- transient ---- */
+  #toasts{position:fixed;left:50%;top:96px;transform:translateX(-50%);display:flex;flex-direction:column;gap:5px;align-items:center;pointer-events:none;z-index:60}
+  .toast{
+    background:rgba(36,27,24,.95);border:1px solid var(--ash-hi);color:var(--bone);
+    padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;
+    animation:toastin .3s ease both, toastout .3s ease .95s both
+  }
+  .toast.gold{color:var(--gold);border-color:#5C4416}
+  @keyframes toastin{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
+  @keyframes toastout{to{opacity:0;transform:translateY(-7px)}}
+
+  #reveal{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:70;opacity:0}
+  #reveal.show{animation:rev 1.5s ease both}
+  @keyframes rev{0%{opacity:0}18%{opacity:1}75%{opacity:1}100%{opacity:0}}
+  .revcard{text-align:center;background:rgba(22,17,15,.9);padding:20px 34px;border-radius:18px;border:1px solid var(--ash-hi)}
+  .revcard .lbl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ember);display:block;margin-bottom:5px}
+  .revcard .nm{font-family:var(--display);font-weight:700;font-size:30px;display:block}
+  .revcard .tr{font-size:11px;color:var(--smoke);margin-top:4px;display:block}
+
+  #sheet{position:fixed;inset:0;background:rgba(11,8,7,.72);display:none;place-items:center;padding:18px;z-index:80}
+  #sheet.open{display:grid}
+  .sheetcard{
+    background:var(--bark);border:1px solid var(--ash-hi);border-radius:16px;padding:20px;
+    max-width:420px;width:100%;max-height:84dvh;overflow-y:auto
+  }
+  .sheetcard h2{font-family:var(--display);font-size:19px;margin:0 0 10px}
+  .sheetcard h3{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ember);margin:16px 0 6px}
+  .sheetcard p, .sheetcard li{font-size:13px;line-height:1.6;color:var(--smoke);margin:0 0 7px}
+  .sheetcard b{color:var(--bone);font-weight:600}
+  .sheetcard ul{margin:0;padding-left:17px}
+  .sheetcard .close{margin-top:16px;width:100%;padding:11px;border-radius:11px;border:1px solid var(--ash-hi);background:var(--ash);color:var(--bone);font-family:var(--ui);font-size:14px;font-weight:600;cursor:pointer}
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  }
+</style>
+
+<div id="app">
+  <div class="top">
+    <h1 class="wordmark">Ember <span>Chain</span></h1>
+    <button class="iconbtn" id="info" aria-label="About this prototype">i</button>
+  </div>
+
+  <div class="hud">
+    <div class="stat"><span class="k">Coins</span><span class="v v-coins" id="coins">0</span></div>
+    <div class="stat"><span class="k">Energy</span><span class="v v-energy" id="energy">30</span><div class="energybar" id="ebar"></div></div>
+    <div class="stat chain" id="chainstat"><span class="k">Chain</span><span class="v" id="chainv">—</span><div class="chainbar" id="cbar"></div></div>
+  </div>
+
+  <div class="boardwrap"><div id="board"></div></div>
+
+  <div class="foot">
+    <button class="nest" id="nest">Tap the nest — 1 energy</button>
+    <p class="hint" id="hint">Tap a creature to merge it with a matching neighbour.</p>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<div id="reveal"><div class="revcard"><span class="lbl">New form</span><span class="nm" id="revname">—</span><span class="tr" id="revtier"></span></div></div>
+
+<div id="sheet">
+  <div class="sheetcard">
+    <h2>What this is for</h2>
+    <p>A throwaway rig for feel-testing three things before any Expo code gets written. Play for
+      five minutes on your phone and judge only these:</p>
+    <h3>1 · Tap-to-merge</h3>
+    <p>Tapping a creature merges it with a matching neighbour. Compare it to dragging (both work).
+      Does removing the drag make it meaningfully faster?</p>
+    <h3>2 · The cascade</h3>
+    <p>From <b>tier 4</b>, merges fire <b>Surge</b>: matching pairs elsewhere are pulled together and
+      merge on their own, which can trigger further abilities. From <b>tier 7</b>, <b>Ignite</b> also
+      burns low-tier clutter back into energy. Does the chain reaction read clearly, or does it feel
+      like the board is playing itself?</p>
+    <h3>3 · The chain meter</h3>
+    <p>Each merge opens a 2.5s window. Merging again inside it raises the multiplier to 3×.
+      Cascades count. Multiplier applies to <b>coins only</b>, never to tiers.</p>
+    <h3>Deliberately unlike the real game</h3>
+    <ul>
+      <li>Energy regenerates ~40× faster so a session is testable</li>
+      <li>One family stands in for all eight, so Surge and Ignite sit back to back</li>
+      <li>Placeholder tiles — tier as heat and a numeral, no art</li>
+      <li>Long-press any creature to bulk-merge every pair of that tier</li>
+      <li>Vibration works on Android; iOS Safari ignores it</li>
+    </ul>
+    <button class="close" id="closesheet">Back to the board</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var COLS=6, ROWS=8, GAP=6, MAXT=10, CASCADE_CAP=12, CHAIN_MS=2500;
+  var ENERGY_MAX=50, ENERGY_MS=3000;
+
+  var NAMES=["","Ember Egg","Newt","Salamander","Firenewt","Cinderling","Ashwyrm","Emberdrake","Radiant","Sunborn","Phoenix"];
+  var FILL=["","#4A3A33","#6B4A33","#8C5A2E","#A96A28","#C67A22","#E08A1E","#F59A22","#FFB03A","#FFC96B","#FFF0C2"];
+  function ink(t){ return t>=6 ? "#2A1006" : "#F2E6DA"; }
+
+  var board=document.getElementById("board");
+  var elCoins=document.getElementById("coins"), elEnergy=document.getElementById("energy");
+  var elChainV=document.getElementById("chainv"), elChainStat=document.getElementById("chainstat");
+  var elCbar=document.getElementById("cbar"), elEbar=document.getElementById("ebar");
+  var elNest=document.getElementById("nest"), elHint=document.getElementById("hint");
+
+  var cell=52, items=[], nextId=1, coins=0, energy=30, best=1;
+  var chain=0, chainUntil=0, busy=false, energyAcc=0;
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function pause(ms){ return new Promise(function(r){ setTimeout(r, reduced?10:ms); }); }
+  function at(r,c){ for(var i=0;i<items.length;i++){ if(items[i].r===r&&items[i].c===c) return items[i]; } return null; }
+  function freeCells(){ var out=[]; for(var r=0;r<ROWS;r++)for(var c=0;c<COLS;c++){ if(!at(r,c)) out.push([r,c]); } return out; }
+
+  /* ---------- layout ---------- */
+  function sizeBoard(){
+    var wrap=board.parentElement;
+    var availW=wrap.clientWidth, availH=wrap.clientHeight;
+    var byW=(availW-(COLS-1)*GAP)/COLS, byH=(availH-(ROWS-1)*GAP)/ROWS;
+    cell=Math.max(30,Math.floor(Math.min(byW,byH)));
+    board.style.width=(COLS*cell+(COLS-1)*GAP)+"px";
+    board.style.height=(ROWS*cell+(ROWS-1)*GAP)+"px";
+    var wells=board.querySelectorAll(".well");
+    for(var i=0;i<wells.length;i++){
+      var r=+wells[i].dataset.r, c=+wells[i].dataset.c;
+      wells[i].style.width=wells[i].style.height=cell+"px";
+      wells[i].style.transform="translate("+(c*(cell+GAP))+"px,"+(r*(cell+GAP))+"px)";
+    }
+    for(var j=0;j<items.length;j++) place(items[j]);
+  }
+  function buildWells(){
+    for(var r=0;r<ROWS;r++)for(var c=0;c<COLS;c++){
+      var w=document.createElement("div");
+      w.className="well"; w.dataset.r=r; w.dataset.c=c; board.appendChild(w);
+    }
+  }
+  function place(it){
+    var tf="translate("+(it.c*(cell+GAP))+"px,"+(it.r*(cell+GAP))+"px)";
+    it.el.style.setProperty("--tf",tf);
+    it.el.style.transform=tf;
+    it.el.style.width=it.el.style.height=cell+"px";
+    it.el.style.fontSize=Math.round(cell*0.4)+"px";
+  }
+  function paint(it){
+    it.el.style.background="linear-gradient(180deg,"+FILL[it.tier]+","+shade(FILL[it.tier],-14)+")";
+    it.el.style.color=ink(it.tier);
+    it.el.textContent=it.tier;
+    it.el.classList.toggle("hot", it.tier>=8);
+  }
+  function shade(hex,amt){
+    var n=parseInt(hex.slice(1),16), r=(n>>16)+amt, g=((n>>8)&255)+amt, b=(n&255)+amt;
+    r=Math.max(0,Math.min(255,r)); g=Math.max(0,Math.min(255,g)); b=Math.max(0,Math.min(255,b));
+    return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+  }
+
+  /* ---------- items ---------- */
+  function addItem(tier,r,c,popped){
+    var el=document.createElement("div");
+    el.className="tile"; el.dataset.id=nextId;
+    var it={id:nextId++,tier:tier,r:r,c:c,el:el};
+    items.push(it); board.appendChild(el); place(it); paint(it);
+    if(popped){ el.classList.add("pop"); setTimeout(function(){ el.classList.remove("pop"); },300); }
+    return it;
+  }
+  function removeItem(it){
+    var i=items.indexOf(it); if(i>-1) items.splice(i,1);
+    it.el.classList.add("vanish");
+    setTimeout(function(){ if(it.el.parentNode) it.el.parentNode.removeChild(it.el); },180);
+  }
+  function neighbours(it){
+    var d=[[1,0],[-1,0],[0,1],[0,-1]], out=[];
+    for(var i=0;i<4;i++){ var n=at(it.r+d[i][0], it.c+d[i][1]); if(n) out.push(n); }
+    return out;
+  }
+  function matchNeighbour(it){
+    var ns=neighbours(it);
+    for(var i=0;i<ns.length;i++){ if(ns[i].tier===it.tier) return ns[i]; }
+    return null;
+  }
+
+  /* ---------- feedback ---------- */
+  function buzz(ms){ if(navigator.vibrate) try{ navigator.vibrate(ms); }catch(e){} }
+  function toast(msg,gold){
+    var t=document.createElement("div");
+    t.className="toast"+(gold?" gold":""); t.textContent=msg;
+    document.getElementById("toasts").appendChild(t);
+    setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); },1300);
+  }
+  function reveal(tier){
+    document.getElementById("revname").textContent=NAMES[tier];
+    document.getElementById("revtier").textContent="Tier "+tier+(tier===MAXT?" — the apex":"");
+    var r=document.getElementById("reveal");
+    r.classList.remove("show"); void r.offsetWidth; r.classList.add("show");
+    buzz([18,40,26]);
+  }
+  function hint(html){ elHint.innerHTML=html; }
+
+  /* ---------- economy ---------- */
+  function mult(){ if(chain>=8) return 3; if(chain>=5) return 2; if(chain>=3) return 1.5; return 1; }
+  function bumpChain(){
+    var now=Date.now();
+    chain = now < chainUntil ? chain+1 : 1;
+    chainUntil = now + CHAIN_MS;
+    renderChain();
+  }
+  function renderChain(){
+    var live = Date.now() < chainUntil && chain>0;
+    elChainStat.classList.toggle("live", live);
+    elChainV.textContent = live ? (chain + "  ×" + mult()) : "—";
+  }
+  function tickChain(){
+    var left = chainUntil - Date.now();
+    elCbar.style.width = left>0 ? Math.max(0,Math.min(100,left/CHAIN_MS*100))+"%" : "0%";
+    if(left<=0 && chain>0){ chain=0; renderChain(); }
+    requestAnimationFrame(tickChain);
+  }
+  function pay(tier){
+    var base = tier*tier*2;
+    var got = Math.round(base * mult());
+    coins += got; elCoins.textContent = coins.toLocaleString();
+    return got;
+  }
+  function setEnergy(v){
+    energy=Math.max(0,Math.min(ENERGY_MAX,v));
+    elEnergy.textContent=energy;
+    elEbar.style.width=(energy/ENERGY_MAX*100)+"%";
+    elNest.disabled = energy<1;
+    elNest.textContent = energy<1 ? "Out of energy — wait a moment" : "Tap the nest — 1 energy";
+  }
+
+  /* ---------- merging ---------- */
+  async function doMerge(a,b,keep){
+    var tier=a.tier;
+    if(tier>=MAXT){ toast("Phoenix is the apex"); return false; }
+    var r=keep.r, c=keep.c;
+    removeItem(a); removeItem(b);
+    var it=addItem(tier+1,r,c,true);
+    bumpChain();
+    var got=pay(tier+1);
+    buzz(tier>=6?24:12);
+    if(tier+1>best){ best=tier+1; reveal(best); }
+    hint("<b>"+NAMES[tier+1]+"</b> · +"+got+" coins"+(mult()>1?" at ×"+mult():""));
+    return it;
+  }
+
+  // Only pairs the ability itself created may auto-merge, so the board never solves itself.
+  async function cascade(touched,depth){
+    var count=0;
+    while(touched.length && count<CASCADE_CAP){
+      var pair=null;
+      for(var i=0;i<touched.length;i++){
+        var it=touched[i];
+        if(items.indexOf(it)===-1) continue;
+        var m=matchNeighbour(it);
+        if(m){ pair=[it,m]; break; }
+      }
+      if(!pair) break;
+      await pause(150);
+      var made=await doMerge(pair[0],pair[1],pair[0]);
+      count++;
+      touched=touched.filter(function(x){ return items.indexOf(x)>-1; });
+      if(made){ touched.push(made); await fireAbility(made,true); }
+    }
+    return count;
+  }
+
+  async function fireAbility(it,quiet){
+    if(it.tier<4) return;
+    var strength = it.tier>=9 ? 6 : it.tier-3;   // t4 -> 1 pair ... t9+ -> 6
+    // SURGE: pull matching pairs together, lowest tiers first
+    var byTier={};
+    for(var i=0;i<items.length;i++){
+      var x=items[i]; if(x===it) continue;
+      (byTier[x.tier]=byTier[x.tier]||[]).push(x);
+    }
+    var tiers=Object.keys(byTier).map(Number).sort(function(a,b){return a-b;});
+    var moved=[], used=0;
+    for(var t=0;t<tiers.length && used<strength;t++){
+      var group=byTier[tiers[t]];
+      while(group.length>=2 && used<strength){
+        var a=group.shift(), b=group.shift();
+        if(matchNeighbour(a)===b) continue;
+        var spot=adjacentFreeCell(b);
+        if(!spot) continue;
+        a.r=spot[0]; a.c=spot[1]; place(a);
+        moved.push(a,b); used++;
+      }
+    }
+    if(used>0){
+      if(!quiet) toast("Surge ×"+used);
+      await pause(200);
+      await cascade(moved,0);
+    }
+    // IGNITE at tier 7+: burn low-tier clutter back into energy
+    if(it.tier>=7){
+      var burn=[], want=it.tier-5;
+      for(var j=0;j<items.length && burn.length<want;j++){
+        if(items[j].tier<=2) burn.push(items[j]);
+      }
+      if(burn.length){
+        for(var k=0;k<burn.length;k++) removeItem(burn[k]);
+        setEnergy(energy+burn.length*2);
+        toast("Ignite — "+burn.length+" burned, +"+(burn.length*2)+" energy", true);
+        await pause(160);
+      }
+    }
+  }
+  function adjacentFreeCell(it){
+    var d=[[1,0],[-1,0],[0,1],[0,-1]];
+    for(var i=0;i<4;i++){
+      var r=it.r+d[i][0], c=it.c+d[i][1];
+      if(r<0||c<0||r>=ROWS||c>=COLS) continue;
+      if(!at(r,c)) return [r,c];
+    }
+    return null;
+  }
+
+  async function mergeFlow(a,b,keep){
+    if(busy) return;
+    busy=true;
+    var made=await doMerge(a,b,keep);
+    if(made) await fireAbility(made,false);
+    busy=false;
+  }
+
+  async function bulkMerge(tier){
+    if(busy) return;
+    busy=true;
+    var pool=items.filter(function(x){ return x.tier===tier; });
+    var n=0;
+    while(pool.length>=2){
+      var a=pool.shift(), b=null;
+      for(var i=0;i<pool.length;i++){ if(matchNeighbour(a)===pool[i]){ b=pool[i]; pool.splice(i,1); break; } }
+      if(!b){ b=pool.shift(); if(!b) break;
+        var spot=adjacentFreeCell(a); if(!spot){ continue; }
+        b.r=spot[0]; b.c=spot[1]; place(b); await pause(90);
+      }
+      var made=await doMerge(a,b,a); n++;
+      if(made) await fireAbility(made,true);
+      await pause(80);
+    }
+    if(n) toast("Bulk merge — "+n); else toast("Nothing to pair");
+    busy=false;
+  }
+
+  /* ---------- input ---------- */
+  var drag=null, pressTimer=null;
+  board.addEventListener("pointerdown", function(e){
+    var el=e.target.closest(".tile"); if(!el||busy) return;
+    var it=items.filter(function(x){ return String(x.id)===el.dataset.id; })[0];
+    if(!it) return;
+    drag={it:it,x0:e.clientX,y0:e.clientY,moved:false};
+    board.setPointerCapture(e.pointerId);
+    pressTimer=setTimeout(function(){
+      if(drag&&!drag.moved){ var t=drag.it.tier; drag=null; buzz(30); bulkMerge(t); }
+    },500);
+  });
+  board.addEventListener("pointermove", function(e){
+    if(!drag) return;
+    var dx=e.clientX-drag.x0, dy=e.clientY-drag.y0;
+    if(!drag.moved && Math.abs(dx)+Math.abs(dy)>8){
+      drag.moved=true; clearTimeout(pressTimer); drag.it.el.classList.add("drag");
+    }
+    if(drag.moved){
+      var base="translate("+(drag.it.c*(cell+GAP))+"px,"+(drag.it.r*(cell+GAP))+"px)";
+      drag.it.el.style.transform=base+" translate("+dx+"px,"+dy+"px) scale(1.08)";
+    }
+  });
+  board.addEventListener("pointerup", function(e){
+    clearTimeout(pressTimer);
+    if(!drag) return;
+    var it=drag.it, moved=drag.moved; drag=null;
+    it.el.classList.remove("drag");
+    if(!moved){
+      var m=matchNeighbour(it);
+      if(m) mergeFlow(it,m,it);
+      else { place(it); hint("No matching neighbour — drag it next to one."); }
+      return;
+    }
+    var rect=board.getBoundingClientRect();
+    var c=Math.floor((e.clientX-rect.left)/(cell+GAP)), r=Math.floor((e.clientY-rect.top)/(cell+GAP));
+    if(r<0||c<0||r>=ROWS||c>=COLS){ place(it); return; }
+    var target=at(r,c);
+    if(target===it || !target){ if(!target){ it.r=r; it.c=c; } place(it); return; }
+    if(target.tier===it.tier){ mergeFlow(it,target,target); }
+    else { place(it); hint("Only matching tiers merge."); }
+  });
+  board.addEventListener("pointercancel", function(){ clearTimeout(pressTimer); if(drag){ place(drag.it); drag.it.el.classList.remove("drag"); drag=null; } });
+
+  elNest.addEventListener("click", function(){
+    if(energy<1||busy) return;
+    var free=freeCells();
+    if(!free.length){ toast("Board is full"); hint("Board full — merge to make room."); return; }
+    setEnergy(energy-1);
+    var spot=free[Math.floor(Math.random()*free.length)];
+    var tier = Math.random()<0.12 ? 2 : 1;
+    addItem(tier,spot[0],spot[1],true);
+    buzz(8);
+  });
+
+  document.getElementById("info").addEventListener("click", function(){ document.getElementById("sheet").classList.add("open"); });
+  document.getElementById("closesheet").addEventListener("click", function(){ document.getElementById("sheet").classList.remove("open"); });
+  document.getElementById("sheet").addEventListener("click", function(e){ if(e.target===this) this.classList.remove("open"); });
+
+  /* ---------- boot ---------- */
+  buildWells();
+  window.addEventListener("resize", sizeBoard);
+  sizeBoard();
+  setEnergy(30);
+  for(var i=0;i<8;i++){
+    var f=freeCells(); var s=f[Math.floor(Math.random()*f.length)];
+    addItem(Math.random()<0.3?2:1,s[0],s[1],false);
+  }
+  setInterval(function(){
+    energyAcc++;
+    if(energy<ENERGY_MAX) setEnergy(energy+1);
+  }, ENERGY_MS);
+  requestAnimationFrame(tickChain);
+})();
+</script>
