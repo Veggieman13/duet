@@ -173,6 +173,25 @@ the source tile instead of the top of the screen.
 The general principle worth keeping: **let the player author the cascade, then let them watch it
 run.** Rarity and locality restore agency more cheaply than taking the fireworks away.
 
+### Follow-up: no dead ends
+
+The first pass at "tidiness pays" printed **"Surge fizzled"** when no pair was in range. Play
+test response was "what is surge fizzled?" — which is the worst of the three possible readings.
+The concern had been whether a fizzle would read as the player's mistake or as the game being
+stingy; in fact it read as neither, because it wasn't legible at all. A negative message the
+player can't decode teaches nothing, and it can land on the player's very first tier-5 merge —
+the exact moment the ability should be selling itself.
+
+Rule adopted: **an ability never does nothing.** Surge now always advances the board, and the
+message names the actual situation so the rule can be learned:
+
+- No pair in range → drags the nearest creature to you (*Gathered ×1*), setting up your next merge
+- Pairs in range but no space to pull → refunds energy (*No room to pull +1*)
+- Nothing in range at all → refunds energy (*Nothing in range +2*)
+
+The reward gradient is now small-to-huge rather than nothing-to-huge, which keeps the incentive
+to organise the board without ever punishing a merge the player worked for.
+
 ## 9. Where this can break
 
 - **Infinite cascades.** Cap auto-merges at ~12 per triggered chain, then stop and hand

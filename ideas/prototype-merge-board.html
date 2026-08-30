@@ -152,9 +152,11 @@
     <h3>2 · The cascade</h3>
     <p>From <b>tier 5</b>, merges fire <b>Surge</b> — but only inside a ring that grows with tier
       (2 cells at tier 5, the whole board at tier 9). Targets light up gold before they move, and it
-      grabs the <b>closest</b> pairs first, so a tidy board pays out and a scattered one fizzles.
+      grabs the <b>closest</b> pairs first, so the tidier the board, the bigger the cascade.
       From tier 7, <b>Ignite</b> also burns low-tier clutter inside that ring back into energy.</p>
-    <p>The question: does it now read as a consequence of <b>where you chose to merge</b>?</p>
+    <p>Surge always does something. With no pair in range it drags the nearest creature to you
+      (<b>Gathered</b>) to set up your next merge; if it is hemmed in it refunds energy instead.
+      The question: does the cascade read as a consequence of <b>where you chose to merge</b>?</p>
     <h3>3 · The chain meter</h3>
     <p>Each merge opens a 2.5s window. <b>Only your own merges climb the multiplier</b> — cascade
       merges pay coins and extend the window, but never raise it for you. A big cascade hands you
@@ -405,7 +407,27 @@
     }
 
     if(!chosen.length){
-      if(!quiet) floatAt(it.r,it.c,"Surge fizzled",true);
+      // Surge never does nothing. Worst case it still advances the board, and the
+      // message says which situation you are in so the rule is learnable.
+      if(pairs.length){
+        setEnergy(energy+1);
+        if(!quiet) floatAt(it.r,it.c,"No room to pull  +1",true);
+      } else {
+        var spot0=adjacentFreeCell(it), pick=null, bestD=999;
+        for(var g=0;g<near.length;g++){
+          var d0=Math.abs(near[g].r-it.r)+Math.abs(near[g].c-it.c);
+          if(d0>1 && (near[g].tier<(pick?pick.tier:99) || (pick&&near[g].tier===pick.tier&&d0<bestD))){ pick=near[g]; bestD=d0; }
+        }
+        if(spot0&&pick){
+          pick.r=spot0[0]; pick.c=spot0[1]; place(pick);
+          if(!quiet) floatAt(it.r,it.c,"Gathered \u00d71");
+          await pause(200);
+          await cascade([pick,it],0);
+        } else {
+          setEnergy(energy+2);
+          if(!quiet) floatAt(it.r,it.c,"Nothing in range  +2",true);
+        }
+      }
       await pause(120);
     } else {
       // Telegraph: show what is about to move before it moves.
