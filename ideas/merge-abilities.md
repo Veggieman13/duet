@@ -141,6 +141,38 @@ for in your very first message, "making decisions where to play", arriving in th
 rather than the busker one. It also doubles your album without doubling your chains, since a
 branch only needs distinct art for tiers 6–10.
 
+## 8a. Playtest finding — agency, 30 Aug
+
+First play of the prototype: tap-to-merge landed well. The cascade "felt more like the board
+playing itself, but it also gives a rush and motivation to get that again."
+
+That's a mistuning of authorship, not of magnitude — so the fix keeps the payoff and moves the
+trigger back into the player's hands. Automation isn't what costs agency; **target selection
+is.** Factory and incremental games are entirely the board playing itself and people love them,
+because the player built the machine. Surge was reaching board-wide and rearranging pieces the
+player wasn't thinking about, and its label appeared at the top of the screen, far from the
+cause.
+
+Four changes, none of which shrink the reward:
+
+1. **Locality.** Surge acts only inside a radius that grows with tier — 2 cells at tier 5, the
+   whole board at tier 9. The cascade becomes a visible consequence of *where* you merged, and
+   board-wide spectacle is reserved for the apex, where it should be rare.
+2. **Telegraph.** Targets light up gold for ~260ms before they move. Predictable is plannable,
+   and plannable is authored.
+3. **Tidiness pays.** Surge takes the *closest* pairs first, so an organised board cascades and
+   a scattered one visibly fizzles. Board arrangement becomes a skill the ability rewards.
+4. **Chain credit.** Only player merges climb the multiplier. Cascade merges pay coins and
+   extend the window but never raise it — so a big cascade hands the player *time to keep
+   playing* rather than playing for them.
+
+Ability floor also moved from tier 4 to tier 5 and the cascade cap from 12 to 8: firing on
+nearly every mid-tier merge made it ambient rather than an event. Feedback labels now float from
+the source tile instead of the top of the screen.
+
+The general principle worth keeping: **let the player author the cascade, then let them watch it
+run.** Rarity and locality restore agency more cheaply than taking the fireworks away.
+
 ## 9. Where this can break
 
 - **Infinite cascades.** Cap auto-merges at ~12 per triggered chain, then stop and hand

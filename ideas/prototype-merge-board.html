@@ -77,6 +77,12 @@
   .hint b{color:var(--bone);font-weight:600}
 
   /* ---- transient ---- */
+  .tile.target{box-shadow:0 0 0 2px var(--gold), 0 2px 0 rgba(0,0,0,.35), 0 0 14px rgba(240,168,48,.5)}
+  .ring{position:absolute;border:2px solid rgba(255,107,53,.6);border-radius:16px;pointer-events:none;z-index:5;animation:ringout .55s cubic-bezier(.2,.8,.3,1) both}
+  @keyframes ringout{from{opacity:.95;transform:scale(.45)}to{opacity:0;transform:scale(1)}}
+  .flabel{position:absolute;font-size:12px;font-weight:700;color:var(--gold);pointer-events:none;z-index:50;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.8);animation:fl 1s ease-out both}
+  .flabel.dim{color:var(--smoke)}
+  @keyframes fl{0%{opacity:0;transform:translate(-50%,6px)}18%{opacity:1}100%{opacity:0;transform:translate(-50%,-30px)}}
   #toasts{position:fixed;left:50%;top:96px;transform:translateX(-50%);display:flex;flex-direction:column;gap:5px;align-items:center;pointer-events:none;z-index:60}
   .toast{
     background:rgba(36,27,24,.95);border:1px solid var(--ash-hi);color:var(--bone);
@@ -144,16 +150,19 @@
     <p>Tapping a creature merges it with a matching neighbour. Compare it to dragging (both work).
       Does removing the drag make it meaningfully faster?</p>
     <h3>2 · The cascade</h3>
-    <p>From <b>tier 4</b>, merges fire <b>Surge</b>: matching pairs elsewhere are pulled together and
-      merge on their own, which can trigger further abilities. From <b>tier 7</b>, <b>Ignite</b> also
-      burns low-tier clutter back into energy. Does the chain reaction read clearly, or does it feel
-      like the board is playing itself?</p>
+    <p>From <b>tier 5</b>, merges fire <b>Surge</b> — but only inside a ring that grows with tier
+      (2 cells at tier 5, the whole board at tier 9). Targets light up gold before they move, and it
+      grabs the <b>closest</b> pairs first, so a tidy board pays out and a scattered one fizzles.
+      From tier 7, <b>Ignite</b> also burns low-tier clutter inside that ring back into energy.</p>
+    <p>The question: does it now read as a consequence of <b>where you chose to merge</b>?</p>
     <h3>3 · The chain meter</h3>
-    <p>Each merge opens a 2.5s window. Merging again inside it raises the multiplier to 3×.
-      Cascades count. Multiplier applies to <b>coins only</b>, never to tiers.</p>
+    <p>Each merge opens a 2.5s window. <b>Only your own merges climb the multiplier</b> — cascade
+      merges pay coins and extend the window, but never raise it for you. A big cascade hands you
+      time to keep playing rather than playing on your behalf. Multiplier affects coins only.</p>
     <h3>Deliberately unlike the real game</h3>
     <ul>
       <li>Energy regenerates ~40× faster so a session is testable</li>
+      <li>Abilities start at tier 5 — rarer than before, so they stay an event</li>
       <li>One family stands in for all eight, so Surge and Ignite sit back to back</li>
       <li>Placeholder tiles — tier as heat and a numeral, no art</li>
       <li>Long-press any creature to bulk-merge every pair of that tier</li>
@@ -167,7 +176,7 @@
 (function(){
   "use strict";
 
-  var COLS=6, ROWS=8, GAP=6, MAXT=10, CASCADE_CAP=12, CHAIN_MS=2500;
+  var COLS=6, ROWS=8, GAP=6, MAXT=10, CASCADE_CAP=8, CHAIN_MS=2500, ABILITY_FLOOR=5;
   var ENERGY_MAX=50, ENERGY_MS=3000;
 
   var NAMES=["","Ember Egg","Newt","Salamander","Firenewt","Cinderling","Ashwyrm","Emberdrake","Radiant","Sunborn","Phoenix"];
@@ -270,13 +279,32 @@
     buzz([18,40,26]);
   }
   function hint(html){ elHint.innerHTML=html; }
+  function floatAt(r,c,text,dim){
+    var f=document.createElement("div");
+    f.className="flabel"+(dim?" dim":""); f.textContent=text;
+    f.style.left=(c*(cell+GAP)+cell/2)+"px";
+    f.style.top=(r*(cell+GAP)-4)+"px";
+    board.appendChild(f);
+    setTimeout(function(){ if(f.parentNode) f.parentNode.removeChild(f); },1000);
+  }
+  function ringAt(r,c,radius){
+    var span=Math.min(radius,Math.max(ROWS,COLS));
+    var size=(2*span+1)*(cell+GAP)-GAP;
+    var d=document.createElement("div");
+    d.className="ring";
+    d.style.width=d.style.height=size+"px";
+    d.style.left=(c*(cell+GAP)+cell/2-size/2)+"px";
+    d.style.top=(r*(cell+GAP)+cell/2-size/2)+"px";
+    board.appendChild(d);
+    setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },560);
+  }
 
   /* ---------- economy ---------- */
   function mult(){ if(chain>=8) return 3; if(chain>=5) return 2; if(chain>=3) return 1.5; return 1; }
-  function bumpChain(){
+  function bumpChain(byPlayer){
     var now=Date.now();
-    chain = now < chainUntil ? chain+1 : 1;
-    chainUntil = now + CHAIN_MS;
+    if(byPlayer){ chain = now < chainUntil ? chain+1 : 1; }
+    chainUntil = now + CHAIN_MS;   // cascades buy you time, they don't climb for you
     renderChain();
   }
   function renderChain(){
@@ -305,13 +333,13 @@
   }
 
   /* ---------- merging ---------- */
-  async function doMerge(a,b,keep){
+  async function doMerge(a,b,keep,byPlayer){
     var tier=a.tier;
     if(tier>=MAXT){ toast("Phoenix is the apex"); return false; }
     var r=keep.r, c=keep.c;
     removeItem(a); removeItem(b);
     var it=addItem(tier+1,r,c,true);
-    bumpChain();
+    bumpChain(byPlayer);
     var got=pay(tier+1);
     buzz(tier>=6?24:12);
     if(tier+1>best){ best=tier+1; reveal(best); }
@@ -332,7 +360,7 @@
       }
       if(!pair) break;
       await pause(150);
-      var made=await doMerge(pair[0],pair[1],pair[0]);
+      var made=await doMerge(pair[0],pair[1],pair[0],false);
       count++;
       touched=touched.filter(function(x){ return items.indexOf(x)>-1; });
       if(made){ touched.push(made); await fireAbility(made,true); }
@@ -341,42 +369,72 @@
   }
 
   async function fireAbility(it,quiet){
-    if(it.tier<4) return;
-    var strength = it.tier>=9 ? 6 : it.tier-3;   // t4 -> 1 pair ... t9+ -> 6
-    // SURGE: pull matching pairs together, lowest tiers first
-    var byTier={};
+    if(it.tier<ABILITY_FLOOR) return;
+    var radius   = it.tier>=9 ? 99 : (it.tier-3);   // t5 -> 2 cells ... t8 -> 5 cells
+    var strength = it.tier>=9 ? 6  : (it.tier-4);   // t5 -> 1 pair  ... t8 -> 4 pairs
+    ringAt(it.r,it.c,radius);
+    await pause(120);
+
+    // Only creatures inside the radius are eligible, so the cascade is visibly a
+    // consequence of where you merged.
+    var near=[];
     for(var i=0;i<items.length;i++){
       var x=items[i]; if(x===it) continue;
-      (byTier[x.tier]=byTier[x.tier]||[]).push(x);
+      if(Math.max(Math.abs(x.r-it.r),Math.abs(x.c-it.c))<=radius) near.push(x);
     }
-    var tiers=Object.keys(byTier).map(Number).sort(function(a,b){return a-b;});
-    var moved=[], used=0;
-    for(var t=0;t<tiers.length && used<strength;t++){
-      var group=byTier[tiers[t]];
-      while(group.length>=2 && used<strength){
-        var a=group.shift(), b=group.shift();
-        if(matchNeighbour(a)===b) continue;
-        var spot=adjacentFreeCell(b);
-        if(!spot) continue;
-        a.r=spot[0]; a.c=spot[1]; place(a);
-        moved.push(a,b); used++;
+    var byTier={};
+    for(var n=0;n<near.length;n++){ (byTier[near[n].tier]=byTier[near[n].tier]||[]).push(near[n]); }
+
+    // Nearest pairs first: a tidy board pays out, a scattered one fizzles.
+    var pairs=[];
+    for(var k in byTier){
+      var g=byTier[k];
+      for(var a=0;a<g.length;a++) for(var b=a+1;b<g.length;b++){
+        pairs.push({a:g[a],b:g[b],d:Math.abs(g[a].r-g[b].r)+Math.abs(g[a].c-g[b].c),t:+k});
       }
     }
-    if(used>0){
-      if(!quiet) toast("Surge ×"+used);
-      await pause(200);
+    pairs.sort(function(p,q){ return p.d-q.d || p.t-q.t; });
+
+    var claimed={}, chosen=[];
+    for(var p=0;p<pairs.length && chosen.length<strength;p++){
+      var pr=pairs[p];
+      if(claimed[pr.a.id]||claimed[pr.b.id]) continue;
+      if(matchNeighbour(pr.a)===pr.b) continue;
+      if(!adjacentFreeCell(pr.b)) continue;
+      claimed[pr.a.id]=claimed[pr.b.id]=1; chosen.push(pr);
+    }
+
+    if(!chosen.length){
+      if(!quiet) floatAt(it.r,it.c,"Surge fizzled",true);
+      await pause(120);
+    } else {
+      // Telegraph: show what is about to move before it moves.
+      for(var c1=0;c1<chosen.length;c1++){ chosen[c1].a.el.classList.add("target"); chosen[c1].b.el.classList.add("target"); }
+      if(!quiet) floatAt(it.r,it.c,"Surge \u00d7"+chosen.length);
+      await pause(260);
+      var moved=[];
+      for(var c2=0;c2<chosen.length;c2++){
+        var ch=chosen[c2];
+        ch.a.el.classList.remove("target"); ch.b.el.classList.remove("target");
+        var spot=adjacentFreeCell(ch.b);
+        if(!spot) continue;
+        ch.a.r=spot[0]; ch.a.c=spot[1]; place(ch.a);
+        moved.push(ch.a,ch.b);
+      }
+      await pause(190);
       await cascade(moved,0);
     }
-    // IGNITE at tier 7+: burn low-tier clutter back into energy
+
+    // IGNITE at tier 7+: burn low-tier clutter inside the same radius back into energy
     if(it.tier>=7){
       var burn=[], want=it.tier-5;
-      for(var j=0;j<items.length && burn.length<want;j++){
-        if(items[j].tier<=2) burn.push(items[j]);
+      for(var j=0;j<near.length && burn.length<want;j++){
+        if(near[j].tier<=2 && items.indexOf(near[j])>-1) burn.push(near[j]);
       }
       if(burn.length){
-        for(var k=0;k<burn.length;k++) removeItem(burn[k]);
+        for(var m=0;m<burn.length;m++) removeItem(burn[m]);
         setEnergy(energy+burn.length*2);
-        toast("Ignite — "+burn.length+" burned, +"+(burn.length*2)+" energy", true);
+        floatAt(it.r,it.c,"Ignite +"+(burn.length*2)+" energy");
         await pause(160);
       }
     }
@@ -394,7 +452,7 @@
   async function mergeFlow(a,b,keep){
     if(busy) return;
     busy=true;
-    var made=await doMerge(a,b,keep);
+    var made=await doMerge(a,b,keep,true);
     if(made) await fireAbility(made,false);
     busy=false;
   }
@@ -411,7 +469,7 @@
         var spot=adjacentFreeCell(a); if(!spot){ continue; }
         b.r=spot[0]; b.c=spot[1]; place(b); await pause(90);
       }
-      var made=await doMerge(a,b,a); n++;
+      var made=await doMerge(a,b,a,true); n++;
       if(made) await fireAbility(made,true);
       await pause(80);
     }
