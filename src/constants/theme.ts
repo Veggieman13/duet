@@ -21,6 +21,10 @@ export const Colors = {
     fertile: '#26A08F',
     fertileSoft: '#DFF3EE',
     onAccent: '#ffffff',
+    // "Window closing" — the only warm-alarm colour in the app. Amber rather
+    // than red so it reads as "soon", not "you missed it".
+    attention: '#9A5B00',
+    attentionSoft: '#FFF0D6',
   },
   dark: {
     text: '#F7E9ED',
@@ -37,6 +41,8 @@ export const Colors = {
     // Dark mode accents are light, so text on them must be dark: white would
     // sit at ~2.5:1 contrast, deep plum sits above 5:1.
     onAccent: '#2A1218',
+    attention: '#F2B872',
+    attentionSoft: '#3D2A14',
   },
 } as const;
 

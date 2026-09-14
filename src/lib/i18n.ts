@@ -94,7 +94,7 @@ export function formatWindow(
 type StringKey =
   | 'pregnancy' | 'week' | 'due' | 'dueIn' | 'overdueBy' | 'days'
   | 'trimester1' | 'trimester2' | 'trimester3'
-  | 'statusNone' | 'statusScheduled' | 'statusDone'
+  | 'status' | 'statusNone' | 'statusScheduled' | 'statusDone'
   | 'stateUpcoming' | 'stateOpen' | 'stateClosing' | 'stateOverdue' | 'stateDone'
   | 'optional' | 'notPlanned' | 'unconfirmed' | 'unconfirmedDose'
   | 'whatHappens' | 'whatFor' | 'notes' | 'addNote' | 'trimesterNotes'
@@ -116,6 +116,7 @@ const STRINGS: Record<StringKey, Localized> = {
   trimester2: { he: 'שליש שני', en: 'Second trimester', nl: 'Tweede trimester' },
   trimester3: { he: 'שליש שלישי', en: 'Third trimester', nl: 'Derde trimester' },
 
+  status: { he: 'סטטוס', en: 'Status', nl: 'Status' },
   statusNone: { he: 'לא נקבע', en: 'Not scheduled', nl: 'Niet gepland' },
   statusScheduled: { he: 'נקבע', en: 'Scheduled', nl: 'Gepland' },
   statusDone: { he: 'בוצע', en: 'Done', nl: 'Gedaan' },

@@ -7,16 +7,22 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  TextInput,
   View,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LanguageSwitch } from '@/components/language-switch';
 import { Stepper } from '@/components/stepper';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { addDays, todayKey } from '@/lib/dates';
+import { formatDate, t } from '@/lib/i18n';
+import { formatGestation, getGestation } from '@/lib/pregnancy';
+import { usePregnancy } from '@/lib/pregnancy-store';
 import { useCycle } from '@/lib/store';
 import { THEME_OPTIONS } from '@/lib/types';
 
@@ -33,6 +39,7 @@ function confirm(title: string, message: string, action: () => void, destructive
 }
 
 export default function SettingsScreen() {
+  const { config, updateConfig } = usePregnancy();
   const {
     settings,
     info,
@@ -263,6 +270,73 @@ export default function SettingsScreen() {
           </ThemedView>
 
           <ThemedView type="backgroundElement" style={styles.card}>
+            <ThemedText type="smallBold">🤍 Pregnancy</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Follows your clinic&apos;s plan instead of your cycle. Your cycle history stays
+              where it is and comes back when you switch this off.
+            </ThemedText>
+            <View style={styles.themeRow}>
+              <Pressable
+                onPress={() => updateConfig({ active: !config.active })}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: config.active }}
+                style={({ pressed }) => [
+                  styles.themeOption,
+                  { backgroundColor: config.active ? theme.tint : theme.backgroundSelected },
+                  pressed && styles.dimmed,
+                ]}>
+                <ThemedText
+                  type="smallBold"
+                  style={config.active ? { color: theme.onAccent } : undefined}>
+                  {config.active ? 'On' : 'Off'}
+                </ThemedText>
+              </Pressable>
+            </View>
+
+            {config.active && (
+              <>
+                <DateNudger
+                  label="Last period started"
+                  value={config.lmp}
+                  onChange={(lmp) => updateConfig({ lmp })}
+                />
+                <ThemedText type="small" themeColor="textSecondary">
+                  That puts you at week {formatGestation(getGestation(config.lmp, todayKey()))}.
+                  Every date window in the plan shifts with this, so change it if a dating scan
+                  moves it.
+                </ThemedText>
+                <DateNudger
+                  label="Due date"
+                  value={config.edd}
+                  onChange={(edd) => updateConfig({ edd })}
+                />
+
+                <ThemedText type="smallBold" style={styles.spacedTop}>
+                  {t('language', settings.locale)}
+                </ThemedText>
+                <LanguageSwitch />
+
+                <ThemedText type="smallBold" style={styles.spacedTop}>
+                  {t('displayName', settings.locale)}
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t('displayNameHint', settings.locale)}
+                </ThemedText>
+                <TextInput
+                  value={settings.displayName ?? ''}
+                  onChangeText={(displayName) => updateSettings({ displayName })}
+                  placeholder="Your name"
+                  placeholderTextColor={theme.textSecondary}
+                  style={[
+                    styles.nameInput,
+                    { backgroundColor: theme.backgroundSelected, color: theme.text },
+                  ]}
+                />
+              </>
+            )}
+          </ThemedView>
+
+          <ThemedView type="backgroundElement" style={styles.card}>
             <ThemedText type="smallBold">💞 Partner sharing</ThemedText>
             {sharingCard()}
             {shareError && (
@@ -300,7 +374,63 @@ export default function SettingsScreen() {
   );
 }
 
+/** Nudge a date a day at a time — enough for "the scan moved it by four days". */
+function DateNudger({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  const theme = useTheme();
+  const { settings } = useCycle();
+  return (
+    <View style={styles.nudger}>
+      <ThemedText type="small" style={styles.nudgerLabel}>
+        {label}
+      </ThemedText>
+      <Pressable
+        onPress={() => onChange(addDays(value, -1))}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}, one day earlier`}
+        style={[styles.nudgeButton, { backgroundColor: theme.backgroundSelected }]}>
+        <ThemedText type="smallBold">−</ThemedText>
+      </Pressable>
+      <ThemedText type="smallBold">{formatDate(value, settings.locale)}</ThemedText>
+      <Pressable
+        onPress={() => onChange(addDays(value, 1))}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}, one day later`}
+        style={[styles.nudgeButton, { backgroundColor: theme.backgroundSelected }]}>
+        <ThemedText type="smallBold">+</ThemedText>
+      </Pressable>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  spacedTop: { marginTop: Spacing.two },
+  nudger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    flexWrap: 'wrap',
+  },
+  nudgerLabel: { flexGrow: 1 },
+  nudgeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nameInput: {
+    borderRadius: 12,
+    padding: Spacing.three,
+    fontSize: 16,
+  },
   container: {
     flex: 1,
     flexDirection: 'row',

@@ -13,12 +13,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CycleRing } from '@/components/cycle-ring';
+import { PregnancyTimeline } from '@/components/pregnancy-timeline';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { DayMarker, getDayDetail, PHASE_DESCRIPTIONS, PHASE_LABELS } from '@/lib/cycle';
 import { dateToKey, formatKey, formatShort, monthTitle, todayKey } from '@/lib/dates';
+import { usePregnancy } from '@/lib/pregnancy-store';
 import { useCycle } from '@/lib/store';
 import { DISCLAIMER, TIP_SECTIONS } from '@/lib/tips';
 import { MOODS, SYMPTOMS } from '@/lib/types';
@@ -61,7 +63,18 @@ const MARKER_LABELS: Record<DayMarker, string> = {
   ovulation: 'Ovulation',
 };
 
+/**
+ * Pregnancy mode replaces this screen entirely: there is no cycle to show for
+ * the next eight months, so a ring of predictions would be noise. Cycle
+ * history is untouched underneath and comes back when the mode is switched
+ * off.
+ */
 export default function TodayScreen() {
+  const { config } = usePregnancy();
+  return config.active ? <PregnancyTimeline /> : <CycleToday />;
+}
+
+function CycleToday() {
   const { settings, info, logs, syncStatus, refreshFromPartner } = useCycle();
   const theme = useTheme();
   const router = useRouter();

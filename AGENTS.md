@@ -26,6 +26,8 @@ the app is their first, built to learn and ship to both stores.
 - `src/lib/store.tsx` — context provider; local persistence + sync push/pull
 - `src/lib/sharing.ts` + `db/schema.sql` — Supabase sync (RLS-guarded; see schema comments)
 - `src/lib/storage.ts` / `.web.ts` — platform-split KV storage (SQLite native, localStorage web)
+- `src/lib/pregnancy*.ts(x)` + `src/lib/i18n.ts` — pregnancy module: seeded clinic
+  plan, gestational math, its own provider, he/en/nl strings
 - Data stays on-device unless sharing is on; then full-snapshot sync per change (debounced)
 
 ## Status / infrastructure
@@ -45,6 +47,21 @@ the app is their first, built to learn and ship to both stores.
 - Supabase project: hohvrrtwnrvmrviapyus.supabase.co (anonymous sign-ins ON, schema applied)
 - Web hosting: GitHub Pages from /docs — landing page, privacy.html, delete-data.html
 - Store materials + launch post drafts: /store
+
+## Pregnancy module
+
+- Replaces the Today screen when `config.active`; cycle history is untouched underneath.
+- **Both partners write** here (unlike cycle data), so it syncs as one row per item, not
+  as a snapshot blob — two writers on one blob overwrite each other silently. RLS pins
+  `updated_by`/`author_id` to `auth.uid()` so attribution can't be forged.
+- Hebrew is the clinical source language: `label.he` is transcribed from the clinic's
+  paper form. Do not edit or back-translate it. `explain.he`/`method.he` are ours.
+- **RTL is text-level only.** React Native can't mirror layout without `I18nManager` and
+  an app reload, and the language switch has to stay instant. Bidi isolation uses
+  U+2068/U+2069 in place of `<bdi>`; `textAlign` has no `start`/`end` in RN.
+- Still unverified: the four margin consults (weeks 16/24/32/37), the supplement doses,
+  and a native-speaker read of the Hebrew we wrote. All three render an "unconfirmed"
+  flag until someone checks the paper.
 
 ## Conventions
 
