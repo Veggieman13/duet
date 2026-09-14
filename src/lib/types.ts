@@ -1,3 +1,5 @@
+import { Locale } from '@/lib/i18n';
+
 export type FlowLevel = 'light' | 'medium' | 'heavy';
 
 export interface DayLog {
@@ -39,6 +41,17 @@ export interface CycleSettings {
   lastSyncAt?: string;
   /** Light/dark preference, independent of the phone's setting. */
   theme: ThemePreference;
+  /**
+   * Language for the pregnancy module. Per-device on purpose: the two of you
+   * sit next to each other reading the same synced data in different
+   * languages, so this is never shared.
+   */
+  locale: Locale;
+  /**
+   * Optional first name, shown beside notes you write. Kept on this device;
+   * it travels only as a snapshot attached to each note.
+   */
+  displayName?: string;
 }
 
 export const DEFAULT_SETTINGS: CycleSettings = {
@@ -47,6 +60,7 @@ export const DEFAULT_SETTINGS: CycleSettings = {
   periodLength: 5,
   role: 'tracker',
   theme: 'system',
+  locale: 'en',
 };
 
 /** Opacity of the period colour used for each flow level, as hex alpha. */

@@ -3,6 +3,7 @@ import * as SplashScreen from 'expo-splash-screen';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { PregnancyProvider } from '@/lib/pregnancy-store';
 import { CycleProvider } from '@/lib/store';
 
 SplashScreen.preventAutoHideAsync();
@@ -19,6 +20,7 @@ function ThemedStack() {
         <Stack.Screen name="onboarding" options={{ presentation: 'modal', gestureEnabled: false }} />
         <Stack.Screen name="pair" options={{ presentation: 'modal' }} />
         <Stack.Screen name="log/[date]" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="plan/[item]" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
   );
@@ -27,7 +29,9 @@ function ThemedStack() {
 export default function RootLayout() {
   return (
     <CycleProvider>
-      <ThemedStack />
+      <PregnancyProvider>
+        <ThemedStack />
+      </PregnancyProvider>
     </CycleProvider>
   );
 }
