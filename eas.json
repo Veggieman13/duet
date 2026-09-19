@@ -6,16 +6,22 @@
     "preview": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "image": "latest"
       },
       "ios": {
-        "simulator": true
+        "simulator": true,
+        "image": "latest"
       }
     },
     "production": {
       "autoIncrement": true,
+      "android": {
+        "image": "latest"
+      },
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "image": "latest"
       }
     }
   },
