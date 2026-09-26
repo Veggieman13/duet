@@ -43,6 +43,10 @@ the app is their first, built to learn and ship to both stores.
   caught statically. Cause was Expo patch skew (expo 57.0.4 / modules-core 57.0.3 with a
   57.0.3 camera, straddling the expo-modules-jsi split). Fix: keep every expo package on the
   same current 57.x patch line, and rebuild with `--clear-cache`.
+- expo-doctor reporting *uniform* patch lag (every expo package a few patches behind,
+  still matching each other) is not the ITMS-90863 situation — that was packages skewed
+  against each other. Don't upgrade mid-release; bump all expo packages together, on
+  purpose, and test on her iPhone. Don't run `npm audit fix` either (dev-tool advisories).
 - EAS project: jarkan/duet (profiles: preview=APK, production=AAB, remote versions)
 - Supabase project: hohvrrtwnrvmrviapyus.supabase.co (anonymous sign-ins ON, schema applied)
 - Web hosting: GitHub Pages from /docs — landing page, privacy.html, delete-data.html
