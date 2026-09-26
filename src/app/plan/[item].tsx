@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import {
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,6 +16,7 @@ import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useLocale } from '@/hooks/use-locale';
 import { useTheme } from '@/hooks/use-theme';
+import { googleCalendarUrl } from '@/lib/calendar-link';
 import { addDays, diffDays, todayKey } from '@/lib/dates';
 import { formatDate, formatWindow, isRTL, t } from '@/lib/i18n';
 import {
@@ -278,6 +280,38 @@ export default function PlanItemScreen() {
                         ]}
                       />
                     </Section>
+
+                    {state.scheduledDate ? (
+                      <View style={styles.section}>
+                        <Pressable
+                          onPress={() =>
+                            Linking.openURL(
+                              googleCalendarUrl(
+                                item,
+                                locale,
+                                state.scheduledDate!,
+                                state.scheduledTime,
+                                state.place,
+                              ),
+                            ).catch(() => {})
+                          }
+                          accessibilityRole="link"
+                          style={({ pressed }) => [
+                            styles.calendarButton,
+                            { borderColor: theme.tint },
+                            pressed && styles.pressed,
+                          ]}>
+                          <ThemedText type="smallBold" themeColor="tint">
+                            📅  {t('addToCalendar', locale)}
+                          </ThemedText>
+                        </Pressable>
+                        <LocalizedText
+                          text={t('calendarHint', locale)}
+                          type="small"
+                          themeColor="textSecondary"
+                        />
+                      </View>
+                    ) : null}
                   </>
                 ) : null}
               </>
@@ -468,6 +502,13 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.7 },
   dateStrip: { flexDirection: 'row', gap: Spacing.two },
+  calendarButton: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    alignItems: 'center',
+  },
   linkButton: { alignSelf: 'flex-start', paddingVertical: Spacing.one },
   warning: { borderRadius: 12, padding: Spacing.three },
   timePicker: { gap: Spacing.two },

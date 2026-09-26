@@ -100,6 +100,7 @@ type StringKey =
   | 'whatHappens' | 'whatFor' | 'notes' | 'addNote' | 'trimesterNotes'
   | 'markDone' | 'markScheduled' | 'clearStatus' | 'undo' | 'undone'
   | 'schedule' | 'changeDate' | 'place' | 'placeHint'
+  | 'addToCalendar' | 'calendarHint'
   | 'time' | 'noTime' | 'hour' | 'minutes' | 'otherDates' | 'windowOnly' | 'outsideWarning'
   | 'supplements' | 'daily' | 'by' | 'from' | 'you' | 'partner'
   | 'savedBy' | 'disclaimer' | 'language' | 'displayName' | 'displayNameHint'
@@ -157,6 +158,16 @@ const STRINGS: Record<StringKey, Localized> = {
   changeDate: { he: 'שינוי תאריך', en: 'Change date', nl: 'Datum wijzigen' },
   place: { he: 'מקום', en: 'Place', nl: 'Locatie' },
   placeHint: { he: 'מרפאה, כתובת', en: 'Clinic, address', nl: 'Kliniek, adres' },
+  addToCalendar: {
+    he: 'הוספה ליומן Google',
+    en: 'Add to Google Calendar',
+    nl: 'Toevoegen aan Google Agenda',
+  },
+  calendarHint: {
+    he: 'מוסיף עותק ליומן שלך. אם התור זז, צריך לעדכן גם שם.',
+    en: 'Adds a copy to your own calendar. If the appointment moves, change it there too.',
+    nl: 'Zet een kopie in je eigen agenda. Verschuift de afspraak, pas hem daar dan ook aan.',
+  },
   time: { he: 'שעה', en: 'Time', nl: 'Tijd' },
   noTime: { he: 'ללא שעה', en: 'No time', nl: 'Geen tijd' },
   hour: { he: 'שעה', en: 'Hour', nl: 'Uur' },
