@@ -59,6 +59,10 @@ the app is their first, built to learn and ship to both stores.
 - **RTL is text-level only.** React Native can't mirror layout without `I18nManager` and
   an app reload, and the language switch has to stay instant. Bidi isolation uses
   U+2068/U+2069 in place of `<bdi>`; `textAlign` has no `start`/`end` in RN.
+- `db/pregnancy.sql` is idempotent and is the migration path: when a column is added,
+  add an `alter table ... add column if not exists` to it and re-run the whole file.
+  The app pushes new columns immediately, so an un-migrated database fails every item
+  push for that table until the file is re-run.
 - Still unverified: the four margin consults (weeks 16/24/32/37), the supplement doses,
   and a native-speaker read of the Hebrew we wrote. All three render an "unconfirmed"
   flag until someone checks the paper.

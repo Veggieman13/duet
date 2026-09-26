@@ -100,6 +100,7 @@ type StringKey =
   | 'whatHappens' | 'whatFor' | 'notes' | 'addNote' | 'trimesterNotes'
   | 'markDone' | 'markScheduled' | 'clearStatus' | 'undo' | 'undone'
   | 'schedule' | 'changeDate' | 'place' | 'placeHint'
+  | 'time' | 'noTime' | 'hour' | 'minutes' | 'otherDates' | 'windowOnly' | 'outsideWarning'
   | 'supplements' | 'daily' | 'by' | 'from' | 'you' | 'partner'
   | 'savedBy' | 'disclaimer' | 'language' | 'displayName' | 'displayNameHint'
   | 'noPlan' | 'planIntro';
@@ -156,6 +157,25 @@ const STRINGS: Record<StringKey, Localized> = {
   changeDate: { he: 'שינוי תאריך', en: 'Change date', nl: 'Datum wijzigen' },
   place: { he: 'מקום', en: 'Place', nl: 'Locatie' },
   placeHint: { he: 'מרפאה, כתובת', en: 'Clinic, address', nl: 'Kliniek, adres' },
+  time: { he: 'שעה', en: 'Time', nl: 'Tijd' },
+  noTime: { he: 'ללא שעה', en: 'No time', nl: 'Geen tijd' },
+  hour: { he: 'שעה', en: 'Hour', nl: 'Uur' },
+  minutes: { he: 'דקות', en: 'Minutes', nl: 'Minuten' },
+  otherDates: {
+    he: 'תאריך מחוץ לחלון…',
+    en: 'A date outside the window…',
+    nl: 'Een datum buiten de termijn…',
+  },
+  windowOnly: {
+    he: 'רק תאריכים בתוך החלון',
+    en: 'Only dates inside the window',
+    nl: 'Alleen datums binnen de termijn',
+  },
+  outsideWarning: {
+    he: 'התאריך הזה מחוץ לחלון שבטופס של המרפאה. כדאי לוודא מול המרפאה שהבדיקה עדיין תקפה במועד הזה.',
+    en: 'This date is outside the window on the clinic\u2019s form. Worth checking with the clinic that the test still counts on this date.',
+    nl: 'Deze datum valt buiten de termijn op het formulier van de kliniek. Vraag de kliniek even na of het onderzoek op deze datum nog telt.',
+  },
 
   supplements: { he: 'תוספי תזונה', en: 'Daily supplements', nl: 'Dagelijkse supplementen' },
   daily: { he: 'כל יום', en: 'Every day', nl: 'Elke dag' },

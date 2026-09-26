@@ -18,8 +18,10 @@ import { useTheme } from '@/hooks/use-theme';
 import { addDays, diffDays, todayKey } from '@/lib/dates';
 import { formatDate, formatWindow, isRTL, t } from '@/lib/i18n';
 import {
+  defaultScheduleDate,
   deriveState,
   INVASIVENESS_LABELS,
+  isOutsideWindow,
   ItemState,
   ItemStatus,
 } from '@/lib/pregnancy';
@@ -31,6 +33,11 @@ import { useCycle } from '@/lib/store';
 const UNDO_MS = 10_000;
 /** Cap on the date strip for open-ended or very long windows. */
 const MAX_DATE_OPTIONS = 120;
+/** How far past each window edge "a date outside the window" reaches. */
+const OUTSIDE_MARGIN_DAYS = 60;
+/** Clinic hours. Anything outside this goes in a note. */
+const HOURS = Array.from({ length: 14 }, (_, i) => `${i + 7}`.padStart(2, '0'));
+const MINUTES = Array.from({ length: 12 }, (_, i) => `${i * 5}`.padStart(2, '0'));
 
 export default function PlanItemScreen() {
   const { item: itemId } = useLocalSearchParams<{ item: string }>();
@@ -46,16 +53,25 @@ export default function PlanItemScreen() {
   const today = todayKey();
 
   const [showMethod, setShowMethod] = useState(false);
+  // Open straight onto the wider range if the saved date is already outside.
+  const [showOtherDates, setShowOtherDates] = useState(
+    !!(item && state?.scheduledDate && isOutsideWindow(item, state.scheduledDate)),
+  );
   const [undo, setUndo] = useState<ItemState | null | undefined>(undefined);
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const dateOptions = useMemo(() => {
     if (!item) return [];
-    const start = item.windowStart ?? today;
-    const end = item.windowEnd ?? addDays(start, MAX_DATE_OPTIONS);
-    const span = Math.min(diffDays(start, end), MAX_DATE_OPTIONS);
+    let start = item.windowStart ?? today;
+    let end = item.windowEnd ?? addDays(start, MAX_DATE_OPTIONS);
+    if (showOtherDates) {
+      start = addDays(start, -OUTSIDE_MARGIN_DAYS);
+      end = addDays(end, OUTSIDE_MARGIN_DAYS);
+    }
+    const limit = showOtherDates ? MAX_DATE_OPTIONS + 2 * OUTSIDE_MARGIN_DAYS : MAX_DATE_OPTIONS;
+    const span = Math.min(diffDays(start, end), limit);
     return Array.from({ length: Math.max(span + 1, 1) }, (_, i) => addDays(start, i));
-  }, [item, today]);
+  }, [item, today, showOtherDates]);
 
   if (!item) {
     return (
@@ -88,7 +104,11 @@ export default function PlanItemScreen() {
   function setStatus(status: ItemStatus) {
     if (status === 'none') return apply(null);
     if (status === 'done') return apply({ ...state, status: 'done' });
-    apply({ ...state, status: 'scheduled', scheduledDate: state?.scheduledDate ?? today });
+    apply({
+      ...state,
+      status: 'scheduled',
+      scheduledDate: state?.scheduledDate ?? defaultScheduleDate(item!, today),
+    });
   }
 
   return (
@@ -181,33 +201,69 @@ export default function PlanItemScreen() {
                     <Section title={t('schedule', locale)}>
                       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <View style={styles.dateStrip}>
-                          {dateOptions.map((date) => (
-                            <Pressable
-                              key={date}
-                              onPress={() =>
-                                apply({ ...state, status: 'scheduled', scheduledDate: date })
-                              }
-                              style={[
-                                styles.dateChip,
-                                {
-                                  backgroundColor:
-                                    state.scheduledDate === date
+                          {dateOptions.map((date) => {
+                            const selected = state.scheduledDate === date;
+                            const outside = isOutsideWindow(item, date);
+                            return (
+                              <Pressable
+                                key={date}
+                                onPress={() =>
+                                  apply({ ...state, status: 'scheduled', scheduledDate: date })
+                                }
+                                style={[
+                                  styles.dateChip,
+                                  {
+                                    backgroundColor: selected
                                       ? theme.tint
-                                      : theme.backgroundElement,
-                                },
-                              ]}>
-                              <ThemedText
-                                type="small"
-                                style={{
-                                  color:
-                                    state.scheduledDate === date ? theme.onAccent : theme.text,
-                                }}>
-                                {formatDate(date, locale)}
-                              </ThemedText>
-                            </Pressable>
-                          ))}
+                                      : outside
+                                        ? theme.attentionSoft
+                                        : theme.backgroundElement,
+                                  },
+                                ]}>
+                                <ThemedText
+                                  type="small"
+                                  style={{
+                                    color: selected
+                                      ? theme.onAccent
+                                      : outside
+                                        ? theme.attention
+                                        : theme.text,
+                                  }}>
+                                  {formatDate(date, locale)}
+                                </ThemedText>
+                              </Pressable>
+                            );
+                          })}
                         </View>
                       </ScrollView>
+
+                      <Pressable
+                        onPress={() => setShowOtherDates((v) => !v)}
+                        hitSlop={8}
+                        style={styles.linkButton}>
+                        <ThemedText type="small" themeColor="tint">
+                          {showOtherDates ? t('windowOnly', locale) : t('otherDates', locale)}
+                        </ThemedText>
+                      </Pressable>
+
+                      {state.scheduledDate && isOutsideWindow(item, state.scheduledDate) ? (
+                        <View style={[styles.warning, { backgroundColor: theme.attentionSoft }]}>
+                          <LocalizedText
+                            text={t('outsideWarning', locale)}
+                            type="small"
+                            style={{ color: theme.attention }}
+                          />
+                        </View>
+                      ) : null}
+                    </Section>
+
+                    <Section title={t('time', locale)}>
+                      <TimePicker
+                        value={state.scheduledTime}
+                        onChange={(scheduledTime) =>
+                          setItemState(item.id, { ...state, scheduledTime })
+                        }
+                      />
                     </Section>
 
                     <Section title={t('place', locale)}>
@@ -283,6 +339,63 @@ export default function PlanItemScreen() {
   );
 }
 
+/**
+ * Hour and minute chips rather than a native picker: no extra native module,
+ * works identically on both phones, and one-handed. Five-minute steps cover
+ * every clinic slot we've seen.
+ */
+function TimePicker({
+  value,
+  onChange,
+}: {
+  value: string | undefined;
+  onChange: (next: string | undefined) => void;
+}) {
+  const theme = useTheme();
+  const locale = useLocale();
+  const [hour, minute] = value ? value.split(':') : [undefined, undefined];
+
+  const chip = (label: string, selected: boolean, onPress: () => void) => (
+    <Pressable
+      key={label}
+      onPress={onPress}
+      style={[
+        styles.timeChip,
+        { backgroundColor: selected ? theme.tint : theme.backgroundElement },
+      ]}>
+      <ThemedText type="small" style={{ color: selected ? theme.onAccent : theme.text }}>
+        {label}
+      </ThemedText>
+    </Pressable>
+  );
+
+  return (
+    <View style={styles.timePicker}>
+      <ThemedText type="small" themeColor="textSecondary">
+        {t('hour', locale)}
+      </ThemedText>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={styles.dateStrip}>
+          {chip(t('noTime', locale), !value, () => onChange(undefined))}
+          {HOURS.map((h) => chip(h, h === hour, () => onChange(`${h}:${minute ?? '00'}`)))}
+        </View>
+      </ScrollView>
+      {value ? (
+        <>
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('minutes', locale)}
+          </ThemedText>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.dateStrip}>
+              {MINUTES.map((m) => chip(`:${m}`, m === minute, () => onChange(`${hour}:${m}`)))}
+            </View>
+          </ScrollView>
+        </>
+      ) : null}
+    </View>
+  );
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
@@ -355,6 +468,16 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.7 },
   dateStrip: { flexDirection: 'row', gap: Spacing.two },
+  linkButton: { alignSelf: 'flex-start', paddingVertical: Spacing.one },
+  warning: { borderRadius: 12, padding: Spacing.three },
+  timePicker: { gap: Spacing.two },
+  timeChip: {
+    minWidth: 44,
+    alignItems: 'center',
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    borderRadius: 999,
+  },
   dateChip: {
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,

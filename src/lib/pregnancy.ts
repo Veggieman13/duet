@@ -63,6 +63,8 @@ export interface ItemState {
   status: ItemStatus;
   /** Set when status is 'scheduled'. */
   scheduledDate?: string;
+  /** Optional appointment time, "HH:MM" in 24-hour local time. */
+  scheduledTime?: string;
   place?: string;
   updatedAt: string;
   /** Supabase user id of whoever last changed it. */
@@ -117,6 +119,24 @@ export function deriveState(
   if (item.windowStart && diffDays(today, item.windowStart) > 0) return 'upcoming';
   if (item.windowEnd && diffDays(today, item.windowEnd) <= CLOSING_DAYS) return 'closing';
   return 'open';
+}
+
+/**
+ * True when a date falls outside the clinic's printed window. Allowed — clinics
+ * do book slightly outside it — but worth a warning, because for some tests
+ * (the combined first-trimester screen above all) the window is the point.
+ */
+export function isOutsideWindow(item: PlanItem, date: string): boolean {
+  if (item.windowStart && diffDays(item.windowStart, date) < 0) return true;
+  if (item.windowEnd && diffDays(date, item.windowEnd) < 0) return true;
+  return false;
+}
+
+/** Today if it falls inside the window, otherwise the nearest window edge. */
+export function defaultScheduleDate(item: PlanItem, today: string): string {
+  if (item.windowStart && diffDays(today, item.windowStart) > 0) return item.windowStart;
+  if (item.windowEnd && diffDays(item.windowEnd, today) > 0) return item.windowEnd;
+  return today;
 }
 
 export interface Gestation {

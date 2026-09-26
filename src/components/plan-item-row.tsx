@@ -9,6 +9,7 @@ import { formatDate, formatWindow, isRTL, t } from '@/lib/i18n';
 import {
   DerivedState,
   INVASIVENESS_LABELS,
+  isOutsideWindow,
   ItemState,
   PlanItem,
 } from '@/lib/pregnancy';
@@ -110,10 +111,16 @@ export function PlanItemRow({ item, state, derived, onPress }: Props) {
         ) : null}
 
         {state?.status === 'scheduled' && state.scheduledDate ? (
+          // Amber rather than pink when the booking falls outside the clinic's
+          // window, so it's visible from the list without opening the item.
           <Tag
-            label={formatDate(state.scheduledDate, locale)}
-            color={theme.tint}
-            bg={theme.tintSoft}
+            label={`${formatDate(state.scheduledDate, locale)}${
+              state.scheduledTime ? ` · ${state.scheduledTime}` : ''
+            }`}
+            color={isOutsideWindow(item, state.scheduledDate) ? theme.attention : theme.tint}
+            bg={
+              isOutsideWindow(item, state.scheduledDate) ? theme.attentionSoft : theme.tintSoft
+            }
           />
         ) : null}
       </View>

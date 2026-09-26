@@ -71,6 +71,11 @@ create table if not exists public.pregnancy_notes (
   primary key (couple_id, note_key)
 );
 
+-- Added in 1.2.0: optional appointment time. A separate statement rather than
+-- part of the create above, so re-running this file upgrades a database that
+-- already has the table.
+alter table public.pregnancy_items add column if not exists scheduled_time time;
+
 alter table public.pregnancy_config enable row level security;
 alter table public.pregnancy_items enable row level security;
 alter table public.pregnancy_notes enable row level security;

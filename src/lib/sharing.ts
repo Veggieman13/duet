@@ -102,6 +102,8 @@ interface ItemRow {
   item_id: string;
   status: ItemState['status'];
   scheduled_date: string | null;
+  /** Postgres `time` comes back as "HH:MM:SS". */
+  scheduled_time: string | null;
   place: string | null;
   updated_at: string;
   updated_by: string;
@@ -160,6 +162,7 @@ export async function pushItemState(
       item_id: itemId,
       status: state.status,
       scheduled_date: state.scheduledDate ?? null,
+      scheduled_time: state.scheduledTime ?? null,
       place: state.place ?? null,
       updated_at: state.updatedAt,
       updated_by: uid,
@@ -209,7 +212,7 @@ export async function fetchPregnancy(coupleId: string): Promise<PregnancySnapsho
       .maybeSingle(),
     supabase
       .from('pregnancy_items')
-      .select('item_id, status, scheduled_date, place, updated_at, updated_by')
+      .select('item_id, status, scheduled_date, scheduled_time, place, updated_at, updated_by')
       .eq('couple_id', coupleId),
     supabase
       .from('pregnancy_notes')
@@ -225,6 +228,7 @@ export async function fetchPregnancy(coupleId: string): Promise<PregnancySnapsho
     items[row.item_id] = {
       status: row.status,
       scheduledDate: row.scheduled_date ?? undefined,
+      scheduledTime: row.scheduled_time ? row.scheduled_time.slice(0, 5) : undefined,
       place: row.place ?? undefined,
       updatedAt: row.updated_at,
       updatedBy: row.updated_by,
